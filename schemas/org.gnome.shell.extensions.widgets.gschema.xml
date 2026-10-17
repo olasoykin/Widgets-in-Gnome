@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.widgets" path="/org/gnome/shell/extensions/widgets/" gettext-domain="widgets@kin">
+    <key name="rows" type="i">
+      <default>6</default>
+      <summary>Number of grid rows</summary>
+      <description>Number of horizontal rows in the widget grid.</description>
+    </key>
+    <key name="columns" type="i">
+      <default>11</default>
+      <summary>Number of grid columns</summary>
+      <description>Number of vertical columns in the widget grid.</description>
+    </key>
+    <key name="gap" type="i">
+      <default>10</default>
+      <summary>Grid gap in pixels</summary>
+      <description>Gap spacing between adjacent grid cells in pixels.</description>
+    </key>
+    <key name="symmetric-grid" type="b">
+      <default>true</default>
+      <summary>Symmetric square grid cells</summary>
+      <description>Ensure all grid cells are perfect squares that cover the desktop.</description>
+    </key>
+    <key name="margin-top" type="i">
+      <default>36</default>
+      <summary>Top margin</summary>
+      <description>Top margin from screen edge in pixels.</description>
+    </key>
+    <key name="margin-bottom" type="i">
+      <default>0</default>
+      <summary>Bottom margin</summary>
+      <description>Bottom margin from screen edge in pixels.</description>
+    </key>
+    <key name="margin-left" type="i">
+      <default>0</default>
+      <summary>Left margin</summary>
+      <description>Left margin from screen edge in pixels.</description>
+    </key>
+    <key name="margin-right" type="i">
+      <default>0</default>
+      <summary>Right margin</summary>
+      <description>Right margin from screen edge in pixels.</description>
+    </key>
+    <key name="show-grid-overlay" type="b">
+      <default>true</default>
+      <summary>Show grid overlay on desktop</summary>
+      <description>Whether to render visual grid guidelines on the desktop.</description>
+    </key>
+    <key name="enable-blur" type="b">
+      <default>true</default>
+      <summary>Enable blur effect</summary>
+      <description>Enable acrylic frosted glass blur effect on widgets using Blur my Shell or GNOME native blur.</description>
+    </key>
+    <key name="disabled-widgets" type="as">
+      <default>[]</default>
+      <summary>Disabled desktop widgets</summary>
+      <description>Widget module filenames that should not be shown on the desktop.</description>
+    </key>
+  </schema>
+</schemalist>

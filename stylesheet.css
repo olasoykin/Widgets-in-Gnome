@@ -1,0 +1,707 @@
+
+
+
+.widget-grid-cell {
+    border: 1px dashed rgba(255, 255, 255, 0.10);
+    background-color: rgba(255, 255, 255, 0.015);
+    border-radius: 22px;
+    transition-duration: 200ms;
+}
+
+.widget-grid-cell-label {
+    font-size: 10px;
+    font-family: 'SF Mono', 'DejaVu Sans Mono', monospace;
+    color: rgba(255, 255, 255, 0.20);
+    padding: 4px 6px;
+}
+
+
+.widget-card {
+    font-family: 'Inter', 'SF Pro Text', 'Cantarell', sans-serif;
+    background-color: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 28px;
+    padding: 16px 18px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+    transition-duration: 150ms;
+}
+
+.widget-media-card {
+    padding: 12px 14px;
+}
+
+.widget-media-card.widget-media-cover-mode {
+    padding: 0;
+    background-color: #202024;
+    background-repeat: no-repeat;
+    border-radius: 28px;
+}
+
+.widget-card:hover {
+    background-color: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 28px;
+    background-repeat: no-repeat;
+}
+
+.widget-card.widget-no-shadow {
+    box-shadow: none;
+}
+
+.widget-card.no-blur {
+    background-color: rgba(30, 30, 32, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+
+.widget-blur-surface {
+    border-radius: 28px;
+}
+
+.widget-content-box {
+    spacing: 6px;
+}
+
+.widget-media-card .widget-content-box {
+    spacing: 4px;
+}
+
+
+.widget-header {
+    spacing: 8px;
+}
+
+.widget-caption {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.widget-header-side {
+    font-family: 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.widget-icon {
+    color: #ffffff;
+}
+
+.widget-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.widget-size-badge {
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.88);
+    background-color: rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    padding: 3px 10px;
+}
+
+.widget-hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.42);
+}
+
+
+.widget-proto-tile {
+    padding: 11px;
+    background-color: rgba(10, 132, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 17px;
+    box-shadow: 0 6px 18px rgba(10, 132, 255, 0.35);
+}
+
+.desktop-item-content {
+    spacing: 6px;
+    padding: 8px;
+}
+
+.desktop-item-icon {
+    color: #ffffff;
+}
+
+.desktop-item-label {
+    color: #ffffff;
+    font-size: 12px;
+    text-align: center;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.desktop-item-content.no-drag-shadow .desktop-item-label {
+    text-shadow: none;
+}
+
+
+.widget-clock-card {
+    spacing: 2px;
+}
+
+.widget-clock-content {
+    spacing: 4px;
+}
+
+.widget-clock-time-row {
+    spacing: 6px;
+}
+
+.widget-clock-time {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 50px;
+    font-weight: 100;
+    letter-spacing: -2px;
+    color: rgba(255, 255, 255, 0.96);
+}
+
+.widget-clock-seconds {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.55);
+    padding-bottom: 6px;
+}
+
+.widget-clock-date {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.widget-analog-clock-card {
+    spacing: 6px;
+}
+
+.widget-analog-clock-face {
+    min-width: 120px;
+    min-height: 120px;
+}
+
+.widget-analog-clock-card.theme-light {
+    background-color: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+}
+
+.widget-analog-clock-card.theme-light:hover {
+    background-color: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.16);
+}
+
+.widget-analog-clock-card.theme-light .widget-caption {
+    color: rgba(0, 0, 0, 0.50);
+}
+
+.widget-analog-clock-card.theme-light .widget-clock-date {
+    color: rgba(0, 0, 0, 0.55);
+}
+
+
+.widget-common-card {
+    spacing: 8px;
+}
+
+.widget-common-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.widget-common-value {
+    font-family: 'SF Pro Display', 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 34px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.widget-common-detail {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+
+.widget-calendar-card {
+    spacing: 2px;
+}
+
+.widget-calendar-weekday {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #ff453a;
+}
+
+.widget-calendar-day {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 60px;
+    font-weight: 100;
+    letter-spacing: -2px;
+    color: rgba(255, 255, 255, 0.96);
+}
+
+.widget-calendar-month {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+
+.widget-battery-value {
+    font-family: 'SF Pro Display', 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+
+.widget-gauge-row {
+    spacing: 8px;
+}
+
+.widget-gauge-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.widget-gauge-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.widget-gauge-track {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-radius: 5px;
+}
+
+.widget-gauge-fill {
+    background-color: #0a84ff;
+    border-radius: 5px;
+}
+
+
+.widget-gauge-blue {
+    background-color: #0a84ff;
+}
+
+.widget-gauge-green {
+    background-color: #30d158;
+}
+
+.widget-gauge-orange {
+    background-color: #ff9f0a;
+}
+
+.widget-gauge-red {
+    background-color: #ff453a;
+}
+
+
+.widget-android-selection-border {
+    border: 2px solid #0a84ff;
+    border-radius: 28px;
+}
+
+.desktop-item-selection-border {
+    box-shadow: none;
+}
+
+
+.widget-android-handle-dot {
+    background-color: #ffffff;
+    border-radius: 9px;
+    border: 1px solid rgba(10, 132, 255, 0.60);
+}
+
+
+.widget-header-icon {
+    margin-right: 2px;
+}
+
+
+.widget-weather-range {
+    font-family: 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.80);
+}
+
+.widget-weather-details {
+    font-family: 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.50);
+}
+
+
+.widget-network-detail {
+    font-family: 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+
+
+.widget-media-title {
+    font-family: 'SF Pro Display', 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.widget-media-medium-title {
+    font-size: 13px;
+}
+
+.widget-media-wide-row {
+    spacing: 18px;
+}
+
+.widget-media-wide-info {
+    spacing: 8px;
+}
+
+.widget-media-wide-title {
+    font-size: 19px;
+}
+
+.widget-media-small-overlay {
+    spacing: 1px;
+    padding: 12px 12px 4px;
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(12, 12, 14, 0.00);
+    background-gradient-end: rgba(12, 12, 14, 0.92);
+    border-radius: 0 0 28px 28px;
+}
+
+.widget-media-card.widget-media-cover-mode .widget-content-box {
+    spacing: 0;
+}
+
+.widget-media-small-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.widget-media-small-artist {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.widget-media-small-overlay .widget-media-controls {
+    spacing: 12px;
+    margin-top: 0;
+}
+
+.widget-media-small-controls .widget-media-button {
+    padding: 2px;
+}
+
+.widget-media-small-controls .widget-media-play-button {
+    padding: 3px;
+}
+
+.widget-media-controls {
+    spacing: 14px;
+    margin-top: 6px;
+}
+
+.widget-media-button {
+    padding: 5px;
+    border-radius: 10px;
+    background-color: transparent;
+    border: 0;
+    transition-duration: 150ms;
+}
+
+.widget-media-button:hover {
+    background-color: transparent;
+}
+
+.widget-media-play-button {
+    padding: 6px;
+    background-color: transparent;
+    border: 0;
+}
+
+.widget-media-play-button:hover {
+    background-color: transparent;
+}
+
+.widget-media-equalizer {
+    margin-right: 6px;
+}
+
+
+.widget-notes-text {
+    font-family: 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.widget-notes-empty {
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.40);
+}
+
+
+.widget-split-row {
+    spacing: 16px;
+}
+
+.widget-split-col {
+    spacing: 4px;
+}
+
+
+.widget-weather-hourly-box {
+    spacing: 10px;
+    padding: 16px 12px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    min-height: 96px;
+}
+
+.widget-weather-hourly-col {
+    spacing: 6px;
+}
+
+.widget-weather-hourly-time {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.widget-weather-hourly-temp {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.widget-weather-daily-box {
+    spacing: 4px;
+    margin-top: 6px;
+}
+
+.widget-weather-daily-row {
+    spacing: 8px;
+    padding: 2px 0;
+}
+
+.widget-weather-daily-day {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    min-width: 36px;
+}
+
+.widget-weather-daily-range {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.widget-badge {
+    padding: 3px 8px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.80);
+}
+
+
+.widget-calendar-grid-box {
+    spacing: 3px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    width: 168px;
+    height: 168px;
+    min-width: 168px;
+    max-width: 168px;
+    min-height: 168px;
+    max-height: 168px;
+}
+
+.widget-calendar-grid-row {
+    spacing: 3px;
+}
+
+.widget-calendar-cell-header {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.45);
+    width: 20px;
+    height: 20px;
+    text-align: center;
+}
+
+.widget-calendar-cell {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    width: 20px;
+    height: 20px;
+    text-align: center;
+}
+
+.widget-calendar-cell-dim {
+    color: rgba(255, 255, 255, 0.18);
+}
+
+.widget-calendar-cell-today {
+    background-color: #ff3b30;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+
+.widget-clock-cities-box {
+    spacing: 6px;
+    padding: 4px 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.widget-clock-city-row {
+    spacing: 8px;
+}
+
+.widget-clock-city-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.widget-clock-city-offset {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.widget-clock-city-time {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.90);
+}
+
+
+.widget-media-cover {
+    background-color: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+}
+
+.widget-media-cover-large {
+    background-color: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 28px;
+}
+
+.widget-media-cover-full {
+    border-radius: 28px;
+}
+
+.widget-media-info-box {
+    spacing: 4px;
+    margin-top: 10px;
+}
+
+.widget-media-timeline {
+    spacing: 4px;
+    margin-top: 4px;
+}
+
+.widget-media-times {
+    min-height: 12px;
+}
+
+.widget-media-time {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.52);
+}
+
+.widget-media-progress-track {
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.18);
+    border-radius: 2px;
+}
+
+.widget-media-progress-fill {
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 2px;
+}
+
+.widget-media-card .widget-media-info-box {
+    spacing: 2px;
+    margin-top: 10px;
+}
+
+.widget-media-title-large {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+}
+
+.widget-media-artist-large {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.65);
+    text-align: center;
+}
+
+.widget-media-controls-large {
+    spacing: 12px;
+}
+
+.widget-media-play-large {
+    padding: 6px;
+    border-radius: 14px;
+    min-width: 34px;
+    min-height: 34px;
+}
+
+.widget-media-player-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.50);
+}
+
+
+.widget-system-detail-pill {
+    padding: 4px 8px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+
+.widget-network-speed-row {
+    spacing: 10px;
+    margin-top: 4px;
+}
+
+.widget-network-speed-badge {
+    padding: 2px 8px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffffff;
+}

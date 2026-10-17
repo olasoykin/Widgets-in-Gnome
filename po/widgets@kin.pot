@@ -1,0 +1,680 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the widgets@kin package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: widgets@kin 1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-17 11:11-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: prefs.js:12
+msgid "Grid"
+msgstr ""
+
+#: prefs.js:18
+msgid "Desktop widgets"
+msgstr ""
+
+#: prefs.js:19
+msgid "Enable or disable each widget in the widgets folder."
+msgstr ""
+
+#: prefs.js:25
+msgid "Desktop grid"
+msgstr ""
+
+#: prefs.js:26
+msgid "Cells fill the desktop while respecting the top bar."
+msgstr ""
+
+#: prefs.js:31
+msgid "Square cells (symmetric)"
+msgstr ""
+
+#: prefs.js:32
+msgid "Calculates proportional square cells that fill the desktop."
+msgstr ""
+
+#: prefs.js:38
+msgid "Rows"
+msgstr ""
+
+#: prefs.js:39
+msgid "Number of vertical rows (e.g. 6, 7, or 8)."
+msgstr ""
+
+#: prefs.js:51
+msgid "Spacing"
+msgstr ""
+
+#: prefs.js:52
+msgid "Distance between cells in pixels."
+msgstr ""
+
+#: prefs.js:64
+msgid "Display and guides"
+msgstr ""
+
+#: prefs.js:69
+msgid "Show grid guides"
+msgstr ""
+
+#: prefs.js:70
+msgid "Draw each cell outline on the desktop background."
+msgstr ""
+
+#: prefs.js:76
+msgid "Visual effects (blur)"
+msgstr ""
+
+#: prefs.js:77
+msgid "Translucent frosted-glass effect with background blur."
+msgstr ""
+
+#: prefs.js:82
+msgid "Background blur"
+msgstr ""
+
+#: prefs.js:83
+msgid "Apply acrylic blur using Blur my Shell or native GNOME Shell."
+msgstr ""
+
+#: widgets/batteryWidget.js:63
+msgid "Charging"
+msgstr ""
+
+#: widgets/batteryWidget.js:64
+msgid "Discharging"
+msgstr ""
+
+#: widgets/batteryWidget.js:65
+msgid "Full"
+msgstr ""
+
+#: widgets/batteryWidget.js:66
+msgid "Not charging"
+msgstr ""
+
+#: widgets/batteryWidget.js:67
+msgid "Idle"
+msgstr ""
+
+#: widgets/batteryWidget.js:68
+msgid "Unknown"
+msgstr ""
+
+#: widgets/batteryWidget.js:80
+msgid "Not detected"
+msgstr ""
+
+#: widgets/batteryWidget.js:154 widgets/batteryWidget.js:250
+msgid "Battery"
+msgstr ""
+
+#: widgets/batteryWidget.js:206
+msgid "Health"
+msgstr ""
+
+#: widgets/batteryWidget.js:212
+msgid "Power"
+msgstr ""
+
+#: widgets/batteryWidget.js:224
+msgid "Cycles"
+msgstr ""
+
+#: widgets/batteryWidget.js:251
+msgid "Battery level, health, and power use."
+msgstr ""
+
+#: widgets/calendarWidget.js:151 widgets/calendarWidget.js:308
+msgid "Calendar"
+msgstr ""
+
+#: widgets/calendarWidget.js:264
+msgid "Week"
+msgstr ""
+
+#: widgets/calendarWidget.js:268
+msgid "Day"
+msgstr ""
+
+#: widgets/calendarWidget.js:268
+msgid "of the year"
+msgstr ""
+
+#: widgets/calendarWidget.js:272
+msgid "day remaining"
+msgid_plural "days remaining"
+msgstr[0] ""
+msgstr[1] ""
+
+#: widgets/calendarWidget.js:309
+msgid "Current date and monthly grid."
+msgstr ""
+
+#: widgets/clockWidget.js:10
+msgid "New York"
+msgstr ""
+
+#: widgets/clockWidget.js:11
+msgid "London"
+msgstr ""
+
+#: widgets/clockWidget.js:12
+msgid "Tokyo"
+msgstr ""
+
+#: widgets/clockWidget.js:13
+msgid "Sydney"
+msgstr ""
+
+#: widgets/clockWidget.js:75
+msgid "Same time"
+msgstr ""
+
+#: widgets/clockWidget.js:166 widgets/clockWidget.js:303
+msgid "Clock"
+msgstr ""
+
+#: widgets/clockWidget.js:304
+msgid "Local time and world clock."
+msgstr ""
+
+#: widgets/clockAnalogWidget.js:144
+msgid "Analog clock with local time."
+msgstr ""
+
+#: widgets/diskWidget.js:110 widgets/diskWidget.js:264
+msgid "Disk"
+msgstr ""
+
+#: widgets/diskWidget.js:116
+msgid "Storage"
+msgstr ""
+
+#: widgets/diskWidget.js:127
+msgid "Not available"
+msgstr ""
+
+#: widgets/diskWidget.js:159
+msgid "available"
+msgstr ""
+
+#: widgets/diskWidget.js:178
+msgid "Capacity"
+msgstr ""
+
+#: widgets/diskWidget.js:182
+msgid "In use"
+msgstr ""
+
+#: widgets/diskWidget.js:186
+msgid "Mount"
+msgstr ""
+
+#: widgets/diskWidget.js:186
+msgid "Root"
+msgstr ""
+
+#: widgets/diskWidget.js:199
+msgid "in use"
+msgstr ""
+
+#: widgets/diskWidget.js:203
+msgid "free of"
+msgstr ""
+
+#: widgets/diskWidget.js:221
+msgid "Home folder"
+msgstr ""
+
+#: widgets/diskWidget.js:237
+msgid "Used"
+msgstr ""
+
+#: widgets/diskWidget.js:238 widgets/systemWidget.js:310
+msgid "Free"
+msgstr ""
+
+#: widgets/diskWidget.js:247 widgets/systemWidget.js:314
+msgid "of"
+msgstr ""
+
+#: widgets/diskWidget.js:247
+msgid "used"
+msgstr ""
+
+#: widgets/diskWidget.js:265
+msgid "Free and used storage space."
+msgstr ""
+
+#: widgets/mediaWidget.js:97 widgets/mediaWidget.js:570
+msgid "Nothing playing"
+msgstr ""
+
+#: widgets/mediaWidget.js:98 widgets/mediaWidget.js:571
+msgid "Open a compatible player"
+msgstr ""
+
+#: widgets/mediaWidget.js:527
+msgid "Untitled"
+msgstr ""
+
+#: widgets/mediaWidget.js:531
+msgid "Unknown artist"
+msgstr ""
+
+#: widgets/mediaWidget.js:741
+msgid "Playing"
+msgstr ""
+
+#: widgets/mediaWidget.js:742
+msgid "Paused"
+msgstr ""
+
+#: widgets/mediaWidget.js:743
+msgid "Stopped"
+msgstr ""
+
+#: widgets/mediaWidget.js:771 widgets/mediaWidget.js:978
+msgid "Music"
+msgstr ""
+
+#: widgets/mediaWidget.js:979
+msgid "Playback controls and large album artwork."
+msgstr ""
+
+#: widgets/networkWidget.js:44 widgets/networkWidget.js:154
+#: widgets/weatherWidget.js:156 widgets/weatherWidget.js:204
+msgid "No connection"
+msgstr ""
+
+#: widgets/networkWidget.js:145
+msgid "Ethernet"
+msgstr ""
+
+#: widgets/networkWidget.js:146 widgets/networkWidget.js:147
+msgid "Mobile"
+msgstr ""
+
+#: widgets/networkWidget.js:156
+msgid "No IP address"
+msgstr ""
+
+#: widgets/networkWidget.js:203 widgets/networkWidget.js:302
+msgid "Network"
+msgstr ""
+
+#: widgets/networkWidget.js:264 widgets/networkWidget.js:287
+msgid "Interface"
+msgstr ""
+
+#: widgets/networkWidget.js:303
+msgid "Active connection, local IP, and network speed."
+msgstr ""
+
+#: widgets/notesWidget.js:11
+msgid "Edit the notes file to see them here"
+msgstr ""
+
+#: widgets/notesWidget.js:67 widgets/notesWidget.js:132
+msgid "Notes"
+msgstr ""
+
+#: widgets/notesWidget.js:115
+msgid "Could not read the notes file"
+msgstr ""
+
+#: widgets/notesWidget.js:133
+msgid "Quick notes from ~/config/widgets@kin/notes.txt."
+msgstr ""
+
+#: widgets/prototypeWidget.js:59
+msgid "Prototype Widget"
+msgstr ""
+
+#: widgets/prototypeWidget.js:71
+msgid "Right-click: Edit / Move"
+msgstr ""
+
+#: widgets/prototypeWidget.js:98
+msgid "Prototype widget"
+msgstr ""
+
+#: widgets/prototypeWidget.js:99
+msgid "Shows widget size and editing instructions."
+msgstr ""
+
+#: widgets/systemWidget.js:150
+msgid "System"
+msgstr ""
+
+#: widgets/systemWidget.js:156 widgets/systemWidget.js:192
+msgid "Load"
+msgstr ""
+
+#: widgets/systemWidget.js:192
+msgid "cores"
+msgstr ""
+
+#: widgets/systemWidget.js:239
+msgid "Disabled"
+msgstr ""
+
+#: widgets/systemWidget.js:264 widgets/systemWidget.js:334
+msgid "Uptime"
+msgstr ""
+
+#: widgets/systemWidget.js:268
+msgid "Processes"
+msgstr ""
+
+#: widgets/systemWidget.js:287
+msgid "CPU & Processor"
+msgstr ""
+
+#: widgets/systemWidget.js:291
+msgid "Averages"
+msgstr ""
+
+#: widgets/systemWidget.js:292
+msgid "processing cores"
+msgstr ""
+
+#: widgets/systemWidget.js:305
+msgid "Memory & Storage"
+msgstr ""
+
+#: widgets/systemWidget.js:310
+msgid "Cache"
+msgstr ""
+
+#: widgets/systemWidget.js:335
+msgid "Tasks"
+msgstr ""
+
+#: widgets/systemWidget.js:336
+msgid "Machine"
+msgstr ""
+
+#: widgets/systemWidget.js:345
+msgid "CPU usage"
+msgstr ""
+
+#: widgets/systemWidget.js:360
+msgid "Memory"
+msgstr ""
+
+#: widgets/systemWidget.js:388
+msgid "System resources"
+msgstr ""
+
+#: widgets/systemWidget.js:389
+msgid "CPU, memory, swap, and activity."
+msgstr ""
+
+#: widgets/weatherWidget.js:12
+msgid "Clear"
+msgstr ""
+
+#: widgets/weatherWidget.js:13
+msgid "Mostly clear"
+msgstr ""
+
+#: widgets/weatherWidget.js:14
+msgid "Partly cloudy"
+msgstr ""
+
+#: widgets/weatherWidget.js:15
+msgid "Cloudy"
+msgstr ""
+
+#: widgets/weatherWidget.js:16
+msgid "Fog"
+msgstr ""
+
+#: widgets/weatherWidget.js:17
+msgid "Rime fog"
+msgstr ""
+
+#: widgets/weatherWidget.js:18
+msgid "Light drizzle"
+msgstr ""
+
+#: widgets/weatherWidget.js:19
+msgid "Drizzle"
+msgstr ""
+
+#: widgets/weatherWidget.js:20
+msgid "Heavy drizzle"
+msgstr ""
+
+#: widgets/weatherWidget.js:21 widgets/weatherWidget.js:22
+msgid "Freezing drizzle"
+msgstr ""
+
+#: widgets/weatherWidget.js:23
+msgid "Light rain"
+msgstr ""
+
+#: widgets/weatherWidget.js:24
+msgid "Rain"
+msgstr ""
+
+#: widgets/weatherWidget.js:25
+msgid "Heavy rain"
+msgstr ""
+
+#: widgets/weatherWidget.js:26 widgets/weatherWidget.js:27
+msgid "Freezing rain"
+msgstr ""
+
+#: widgets/weatherWidget.js:28
+msgid "Light snow"
+msgstr ""
+
+#: widgets/weatherWidget.js:29
+msgid "Snow"
+msgstr ""
+
+#: widgets/weatherWidget.js:30
+msgid "Heavy snow"
+msgstr ""
+
+#: widgets/weatherWidget.js:31
+msgid "Snow grains"
+msgstr ""
+
+#: widgets/weatherWidget.js:32
+msgid "Light showers"
+msgstr ""
+
+#: widgets/weatherWidget.js:33
+msgid "Showers"
+msgstr ""
+
+#: widgets/weatherWidget.js:34
+msgid "Heavy showers"
+msgstr ""
+
+#: widgets/weatherWidget.js:35 widgets/weatherWidget.js:36
+msgid "Snow showers"
+msgstr ""
+
+#: widgets/weatherWidget.js:37
+msgid "Thunderstorm"
+msgstr ""
+
+#: widgets/weatherWidget.js:38
+msgid "Thunderstorm with hail"
+msgstr ""
+
+#: widgets/weatherWidget.js:39
+msgid "Heavy thunderstorm"
+msgstr ""
+
+#: widgets/weatherWidget.js:71
+msgid "Loading weather…"
+msgstr ""
+
+#: widgets/weatherWidget.js:162
+msgid "Location unavailable"
+msgstr ""
+
+#: widgets/weatherWidget.js:212
+msgid "No data"
+msgstr ""
+
+#: widgets/weatherWidget.js:261 widgets/weatherWidget.js:576
+msgid "Weather"
+msgstr ""
+
+#: widgets/weatherWidget.js:305
+msgid "Now"
+msgstr ""
+
+#: widgets/weatherWidget.js:384 widgets/weatherWidget.js:463
+#: widgets/weatherWidget.js:509 widgets/weatherWidget.js:561
+msgid "Min"
+msgstr ""
+
+#: widgets/weatherWidget.js:384 widgets/weatherWidget.js:463
+#: widgets/weatherWidget.js:509 widgets/weatherWidget.js:561
+msgid "Max"
+msgstr ""
+
+#: widgets/weatherWidget.js:406
+msgid "No description"
+msgstr ""
+
+#: widgets/weatherWidget.js:468 widgets/weatherWidget.js:525
+msgid "Feels like"
+msgstr ""
+
+#: widgets/weatherWidget.js:468 widgets/weatherWidget.js:529
+msgid "Humidity"
+msgstr ""
+
+#: widgets/weatherWidget.js:533
+msgid "Wind"
+msgstr ""
+
+#: widgets/weatherWidget.js:577
+msgid "Temperature, hourly forecast, and conditions."
+msgstr ""
+
+#: core/desktopItem.js:152
+msgid "Remove from desktop (move to trash)"
+msgstr ""
+
+#: core/desktopItem.js:160
+msgid "Open"
+msgstr ""
+
+#: core/desktopItem.js:161
+msgid "Show in Files"
+msgstr ""
+
+#: core/desktopItem.js:162
+msgid "Move"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Number of grid rows"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Number of horizontal rows in the widget grid."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Number of grid columns"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Number of vertical columns in the widget grid."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Grid gap in pixels"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Gap spacing between adjacent grid cells in pixels."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Symmetric square grid cells"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Ensure all grid cells are perfect squares that cover the desktop."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Top margin"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Top margin from screen edge in pixels."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Bottom margin"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Bottom margin from screen edge in pixels."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Left margin"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Left margin from screen edge in pixels."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Right margin"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Right margin from screen edge in pixels."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Show grid overlay on desktop"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Whether to render visual grid guidelines on the desktop."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Enable blur effect"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Enable acrylic frosted glass blur effect on widgets using Blur my Shell or GNOME native blur."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Disabled desktop widgets"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Widget module filenames that should not be shown on the desktop."
+msgstr ""

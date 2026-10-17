@@ -1,0 +1,507 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: widgets@kin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-17 11:11-0300\n"
+"PO-Revision-Date: 2026-10-17 11:12-0300\n"
+"Last-Translator: Widgets contributors\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Grid"
+msgstr "Cuadrícula"
+
+msgid "Desktop widgets"
+msgstr "Widgets del escritorio"
+
+msgid "Enable or disable each widget in the widgets folder."
+msgstr "Activa o desactiva cada widget de la carpeta de widgets."
+
+msgid "Desktop grid"
+msgstr "Cuadrícula del escritorio"
+
+msgid "Cells fill the desktop while respecting the top bar."
+msgstr "Las celdas ocupan el escritorio respetando la barra superior."
+
+msgid "Square cells (symmetric)"
+msgstr "Celdas cuadradas (simétricas)"
+
+msgid "Calculates proportional square cells that fill the desktop."
+msgstr "Calcula celdas cuadradas proporcionales que ocupan todo el escritorio."
+
+msgid "Rows"
+msgstr "Filas"
+
+msgid "Number of vertical rows (e.g. 6, 7, or 8)."
+msgstr "Número de filas verticales (por ejemplo, 6, 7 u 8)."
+
+msgid "Spacing"
+msgstr "Espaciado"
+
+msgid "Distance between cells in pixels."
+msgstr "Distancia entre celdas en píxeles."
+
+msgid "Display and guides"
+msgstr "Visualización y guías"
+
+msgid "Show grid guides"
+msgstr "Mostrar guías de cuadrícula"
+
+msgid "Draw each cell outline on the desktop background."
+msgstr "Dibuja el contorno de cada celda en el fondo del escritorio."
+
+msgid "Visual effects (blur)"
+msgstr "Efectos visuales (desenfoque)"
+
+msgid "Translucent frosted-glass effect with background blur."
+msgstr "Efecto translúcido de vidrio esmerilado con desenfoque de fondo."
+
+msgid "Background blur"
+msgstr "Desenfoque de fondo"
+
+msgid "Apply acrylic blur using Blur my Shell or native GNOME Shell."
+msgstr "Aplica desenfoque acrílico con Blur my Shell o el desenfoque nativo de GNOME Shell."
+
+msgid "Charging"
+msgstr "Cargando"
+
+msgid "Discharging"
+msgstr "Descargando"
+
+msgid "Full"
+msgstr "Completa"
+
+msgid "Not charging"
+msgstr "No está cargando"
+
+msgid "Idle"
+msgstr "En reposo"
+
+msgid "Unknown"
+msgstr "Desconocido"
+
+msgid "Not detected"
+msgstr "No detectada"
+
+msgid "Battery"
+msgstr "Batería"
+
+msgid "Health"
+msgstr "Salud"
+
+msgid "Power"
+msgstr "Potencia"
+
+msgid "Cycles"
+msgstr "Ciclos"
+
+msgid "Battery level, health, and power use."
+msgstr "Nivel, estado y consumo de energía de la batería."
+
+msgid "Calendar"
+msgstr "Calendario"
+
+msgid "Week"
+msgstr "Semana"
+
+msgid "Day"
+msgstr "Día"
+
+msgid "of the year"
+msgstr "del año"
+
+msgid "day remaining"
+msgid_plural "days remaining"
+msgstr[0] "día restante"
+msgstr[1] "días restantes"
+
+msgid "Current date and monthly grid."
+msgstr "Fecha actual y cuadrícula mensual."
+
+msgid "New York"
+msgstr "Nueva York"
+
+msgid "London"
+msgstr "Londres"
+
+msgid "Tokyo"
+msgstr "Tokio"
+
+msgid "Sydney"
+msgstr "Sídney"
+
+msgid "Same time"
+msgstr "Misma hora"
+
+msgid "Clock"
+msgstr "Reloj"
+
+msgid "Local time and world clock."
+msgstr "Hora local y reloj mundial."
+
+msgid "Analog clock with local time."
+msgstr "Reloj analógico con hora local."
+
+msgid "Disk"
+msgstr "Disco"
+
+msgid "Storage"
+msgstr "Almacenamiento"
+
+msgid "Not available"
+msgstr "No disponible"
+
+msgid "available"
+msgstr "disponibles"
+
+msgid "Capacity"
+msgstr "Capacidad"
+
+msgid "In use"
+msgstr "En uso"
+
+msgid "Mount"
+msgstr "Montaje"
+
+msgid "Root"
+msgstr "Raíz"
+
+msgid "in use"
+msgstr "en uso"
+
+msgid "free of"
+msgstr "libres de"
+
+msgid "Home folder"
+msgstr "Carpeta personal"
+
+msgid "Used"
+msgstr "Usado"
+
+msgid "Free"
+msgstr "Libre"
+
+msgid "of"
+msgstr "de"
+
+msgid "used"
+msgstr "usados"
+
+msgid "Free and used storage space."
+msgstr "Espacio de almacenamiento libre y utilizado."
+
+msgid "Nothing playing"
+msgstr "No hay reproducción"
+
+msgid "Open a compatible player"
+msgstr "Abre un reproductor compatible"
+
+msgid "Untitled"
+msgstr "Sin título"
+
+msgid "Unknown artist"
+msgstr "Artista desconocido"
+
+msgid "Playing"
+msgstr "Reproduciendo"
+
+msgid "Paused"
+msgstr "En pausa"
+
+msgid "Stopped"
+msgstr "Detenido"
+
+msgid "Music"
+msgstr "Música"
+
+msgid "Playback controls and large album artwork."
+msgstr "Controles de reproducción y carátula grande del álbum."
+
+msgid "No connection"
+msgstr "Sin conexión"
+
+msgid "Ethernet"
+msgstr "Cable"
+
+msgid "Mobile"
+msgstr "Móvil"
+
+msgid "No IP address"
+msgstr "Sin dirección IP"
+
+msgid "Network"
+msgstr "Red"
+
+msgid "Interface"
+msgstr "Interfaz"
+
+msgid "Active connection, local IP, and network speed."
+msgstr "Conexión activa, IP local y velocidad de red."
+
+msgid "Edit the notes file to see them here"
+msgstr "Edita el archivo de notas para verlas aquí"
+
+msgid "Notes"
+msgstr "Notas"
+
+msgid "Could not read the notes file"
+msgstr "No se pudo leer el archivo de notas"
+
+msgid "Quick notes from ~/config/widgets@kin/notes.txt."
+msgstr "Notas rápidas desde ~/config/widgets@kin/notes.txt."
+
+msgid "Prototype Widget"
+msgstr "Widget de prueba"
+
+msgid "Right-click: Edit / Move"
+msgstr "Clic derecho: editar / mover"
+
+msgid "Prototype widget"
+msgstr "Widget de prueba"
+
+msgid "Shows widget size and editing instructions."
+msgstr "Muestra el tamaño del widget y las instrucciones de edición."
+
+msgid "System"
+msgstr "Sistema"
+
+msgid "Load"
+msgstr "Carga"
+
+msgid "cores"
+msgstr "núcleos"
+
+msgid "Disabled"
+msgstr "Desactivada"
+
+msgid "Uptime"
+msgstr "Tiempo activo"
+
+msgid "Processes"
+msgstr "Procesos"
+
+msgid "CPU & Processor"
+msgstr "CPU y procesador"
+
+msgid "Averages"
+msgstr "Promedios"
+
+msgid "processing cores"
+msgstr "núcleos de procesamiento"
+
+msgid "Memory & Storage"
+msgstr "Memoria y almacenamiento"
+
+msgid "Cache"
+msgstr "Caché"
+
+msgid "Tasks"
+msgstr "Tareas"
+
+msgid "Machine"
+msgstr "Equipo"
+
+msgid "CPU usage"
+msgstr "Uso de CPU"
+
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "System resources"
+msgstr "Recursos del sistema"
+
+msgid "CPU, memory, swap, and activity."
+msgstr "CPU, memoria, swap y actividad."
+
+msgid "Clear"
+msgstr "Despejado"
+
+msgid "Mostly clear"
+msgstr "Mayormente despejado"
+
+msgid "Partly cloudy"
+msgstr "Parcialmente nublado"
+
+msgid "Cloudy"
+msgstr "Nublado"
+
+msgid "Fog"
+msgstr "Niebla"
+
+msgid "Rime fog"
+msgstr "Niebla con escarcha"
+
+msgid "Light drizzle"
+msgstr "Llovizna ligera"
+
+msgid "Drizzle"
+msgstr "Llovizna"
+
+msgid "Heavy drizzle"
+msgstr "Llovizna intensa"
+
+msgid "Freezing drizzle"
+msgstr "Llovizna helada"
+
+msgid "Light rain"
+msgstr "Lluvia ligera"
+
+msgid "Rain"
+msgstr "Lluvia"
+
+msgid "Heavy rain"
+msgstr "Lluvia intensa"
+
+msgid "Freezing rain"
+msgstr "Lluvia helada"
+
+msgid "Light snow"
+msgstr "Nieve ligera"
+
+msgid "Snow"
+msgstr "Nieve"
+
+msgid "Heavy snow"
+msgstr "Nieve intensa"
+
+msgid "Snow grains"
+msgstr "Granos de nieve"
+
+msgid "Light showers"
+msgstr "Chubascos ligeros"
+
+msgid "Showers"
+msgstr "Chubascos"
+
+msgid "Heavy showers"
+msgstr "Chubascos intensos"
+
+msgid "Snow showers"
+msgstr "Chubascos de nieve"
+
+msgid "Thunderstorm"
+msgstr "Tormenta"
+
+msgid "Thunderstorm with hail"
+msgstr "Tormenta con granizo"
+
+msgid "Heavy thunderstorm"
+msgstr "Tormenta intensa"
+
+msgid "Loading weather…"
+msgstr "Obteniendo clima…"
+
+msgid "Location unavailable"
+msgstr "Ubicación no disponible"
+
+msgid "No data"
+msgstr "Sin datos"
+
+msgid "Weather"
+msgstr "Clima"
+
+msgid "Now"
+msgstr "Ahora"
+
+msgid "Min"
+msgstr "Mín"
+
+msgid "Max"
+msgstr "Máx"
+
+msgid "No description"
+msgstr "Sin descripción"
+
+msgid "Feels like"
+msgstr "Sensación"
+
+msgid "Humidity"
+msgstr "Humedad"
+
+msgid "Wind"
+msgstr "Viento"
+
+msgid "Temperature, hourly forecast, and conditions."
+msgstr "Temperatura, pronóstico por horas y condiciones."
+
+msgid "Remove from desktop (move to trash)"
+msgstr "Quitar del escritorio (mover a la papelera)"
+
+msgid "Open"
+msgstr "Abrir"
+
+msgid "Show in Files"
+msgstr "Mostrar en Archivos"
+
+msgid "Move"
+msgstr "Mover"
+
+msgid "Number of grid rows"
+msgstr "Número de filas de la cuadrícula"
+
+msgid "Number of horizontal rows in the widget grid."
+msgstr "Número de filas horizontales de la cuadrícula de widgets."
+
+msgid "Number of grid columns"
+msgstr "Número de columnas de la cuadrícula"
+
+msgid "Number of vertical columns in the widget grid."
+msgstr "Número de columnas verticales de la cuadrícula de widgets."
+
+msgid "Grid gap in pixels"
+msgstr "Espaciado de la cuadrícula en píxeles"
+
+msgid "Gap spacing between adjacent grid cells in pixels."
+msgstr "Espacio en píxeles entre celdas adyacentes de la cuadrícula."
+
+msgid "Symmetric square grid cells"
+msgstr "Celdas cuadradas simétricas"
+
+msgid "Ensure all grid cells are perfect squares that cover the desktop."
+msgstr "Hace que todas las celdas sean cuadrados perfectos que cubren el escritorio."
+
+msgid "Top margin"
+msgstr "Margen superior"
+
+msgid "Top margin from screen edge in pixels."
+msgstr "Margen superior en píxeles desde el borde de la pantalla."
+
+msgid "Bottom margin"
+msgstr "Margen inferior"
+
+msgid "Bottom margin from screen edge in pixels."
+msgstr "Margen inferior en píxeles desde el borde de la pantalla."
+
+msgid "Left margin"
+msgstr "Margen izquierdo"
+
+msgid "Left margin from screen edge in pixels."
+msgstr "Margen izquierdo en píxeles desde el borde de la pantalla."
+
+msgid "Right margin"
+msgstr "Margen derecho"
+
+msgid "Right margin from screen edge in pixels."
+msgstr "Margen derecho en píxeles desde el borde de la pantalla."
+
+msgid "Show grid overlay on desktop"
+msgstr "Mostrar cuadrícula en el escritorio"
+
+msgid "Whether to render visual grid guidelines on the desktop."
+msgstr "Determina si se muestran guías visuales de la cuadrícula en el escritorio."
+
+msgid "Enable blur effect"
+msgstr "Activar efecto de desenfoque"
+
+msgid "Enable acrylic frosted glass blur effect on widgets using Blur my Shell or GNOME native blur."
+msgstr "Activa el efecto acrílico translúcido en los widgets mediante Blur my Shell o el desenfoque nativo de GNOME."
+
+msgid "Disabled desktop widgets"
+msgstr "Widgets del escritorio desactivados"
+
+msgid "Widget module filenames that should not be shown on the desktop."
+msgstr "Nombres de archivo de los módulos que no se deben mostrar en el escritorio."

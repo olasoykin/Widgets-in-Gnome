@@ -1,0 +1,9 @@
+{
+  "uuid": "widgets@kin",
+  "gettext-domain": "widgets@kin",
+  "name": "Widgets",
+  "description": "Desktop widget system with a customizable grid.",
+  "shell-version": ["50", "51"],
+  "settings-schema": "org.gnome.shell.extensions.widgets",
+  "version": 2
+}
