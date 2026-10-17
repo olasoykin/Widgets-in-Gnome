@@ -33,3 +33,9 @@ You can install them using the **Extension Manager** app or from [extensions.gno
    ```
 
 If the extension does not appear or activate, log out and back in. On GNOME running on Xorg, you can also restart GNOME Shell by pressing `Alt` + `F2`, entering `r`, and pressing `Enter`.
+
+## License
+
+Copyright (C) 2026 olasoykin
+
+This project is licensed under the GNU General Public License, version 3 or (at your option) any later version. See [LICENSE](LICENSE) for the full text.

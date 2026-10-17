@@ -1,0 +1,742 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: widgets@kin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-17 20:31-0300\n"
+"PO-Revision-Date: 2026-10-17 00:00+0000\n"
+"Last-Translator: Codex\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: widgets/calendarWidget.js:285
+#, javascript-format
+msgid "%d day remaining"
+msgid_plural "%d days remaining"
+msgstr[0] "残り%d日"
+
+#: widgets/networkWidget.js:303
+msgid "Active connection, local IP, and network speed."
+msgstr "接続中のネットワーク、ローカルIPアドレス、通信速度を表示します。"
+
+#: widgets/clockAnalogWidget.js:192
+msgid "Analog clock with local time."
+msgstr "現在地の時刻をアナログ時計で表示します。"
+
+#: prefs.js:83
+msgid "Apply live acrylic blur using Blur my Shell or native GNOME Shell."
+msgstr "Blur my Shell または GNOME Shell の機能で、ウィジェットの背景をリアルタイムにぼかします。"
+
+#: widgets/systemWidget.js:291
+msgid "Averages"
+msgstr "平均負荷"
+
+#: widgets/batteryWidget.js:154 widgets/batteryWidget.js:250
+msgid "Battery"
+msgstr "バッテリー"
+
+#: widgets/batteryWidget.js:251
+msgid "Battery level, health, and power use."
+msgstr "バッテリー残量、状態、電力使用量を表示します。"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:31
+msgid "Bottom margin"
+msgstr "下の余白"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:32
+msgid "Bottom margin from screen edge in pixels."
+msgstr "画面の端から下側に空ける余白（ピクセル）。"
+
+#: widgets/systemWidget.js:287
+msgid "CPU & Processor"
+msgstr "CPU・プロセッサー"
+
+#: widgets/systemWidget.js:345
+msgid "CPU usage"
+msgstr "CPU使用率"
+
+#: widgets/systemWidget.js:389
+msgid "CPU, memory, swap, and activity."
+msgstr "CPU、メモリー、スワップ、稼働状況を表示します。"
+
+#: widgets/systemWidget.js:310
+msgid "Cache"
+msgstr "キャッシュ"
+
+#: prefs.js:32
+msgid "Calculates proportional square cells that fill the desktop."
+msgstr "デスクトップを埋める、画面比率に合った正方形のセルを計算します。"
+
+#: widgets/calendarWidget.js:321
+msgid "Calendar"
+msgstr "カレンダー"
+
+#: widgets/diskWidget.js:178
+msgid "Capacity"
+msgstr "容量"
+
+#: prefs.js:26
+msgid "Cells fill the desktop while respecting the top bar."
+msgstr "上部バーを避けながら、セルをデスクトップ全体に配置します。"
+
+#: extension.js:191
+msgid "Change Background…"
+msgstr "背景を変更…"
+
+#: widgets/batteryWidget.js:63
+msgid "Charging"
+msgstr "充電中"
+
+#: widgets/weatherWidget.js:12
+msgid "Clear"
+msgstr "晴れ"
+
+#: widgets/clockAnalogWidget.js:191 widgets/clockWidget.js:281
+msgid "Clock"
+msgstr "時計"
+
+#: extension.js:276
+msgid "Close"
+msgstr "閉じる"
+
+#: widgets/weatherWidget.js:15
+msgid "Cloudy"
+msgstr "くもり"
+
+#: widgets/notesWidget.js:115
+msgid "Could not read the notes file"
+msgstr "メモファイルを読み込めませんでした"
+
+#: widgets/calendarWidget.js:322
+msgid "Current date and monthly grid."
+msgstr "今日の日付と月間カレンダーを表示します。"
+
+#: widgets/batteryWidget.js:224
+msgid "Cycles"
+msgstr "充放電回数"
+
+#: widgets/calendarWidget.js:281
+#, javascript-format
+msgid "Day %d of the year"
+msgstr "年の%d日目"
+
+#: extension.js:200
+msgid "Desktop Settings"
+msgstr "デスクトップの設定"
+
+#: prefs.js:25
+msgid "Desktop grid"
+msgstr "デスクトップのグリッド"
+
+#: extension.js:247 prefs.js:18
+msgid "Desktop widgets"
+msgstr "デスクトップウィジェット"
+
+#: widgets/systemWidget.js:239
+msgid "Disabled"
+msgstr "無効"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:61
+msgid "Disabled desktop widgets"
+msgstr "無効にするデスクトップウィジェット"
+
+#: widgets/batteryWidget.js:64
+msgid "Discharging"
+msgstr "放電中"
+
+#: widgets/diskWidget.js:110 widgets/diskWidget.js:264
+msgid "Disk"
+msgstr "ディスク"
+
+#: extension.js:192
+msgid "Display Settings"
+msgstr "画面設定"
+
+#: prefs.js:64
+msgid "Display and guides"
+msgstr "表示とガイド"
+
+#: prefs.js:52
+msgid "Distance between cells in pixels."
+msgstr "セル間の距離（ピクセル）。"
+
+#: prefs.js:70
+msgid "Draw each cell outline on the desktop background."
+msgstr "デスクトップの背景に各セルの枠線を表示します。"
+
+#: widgets/weatherWidget.js:19
+msgid "Drizzle"
+msgstr "霧雨"
+
+#: prefs.js:82
+msgid "Dynamic background blur"
+msgstr "背景の動的ぼかし"
+
+#: widgets/notesWidget.js:11
+msgid "Edit the notes file to see them here"
+msgstr "メモをここに表示するには、メモファイルを編集してください"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:52
+msgid "Enable acrylic frosted glass blur effect on widgets using Blur my Shell or GNOME native blur."
+msgstr "Blur my Shell または GNOME Shell の機能を使って、ウィジェットにすりガラスのような背景ぼかしを適用します。"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:51
+msgid "Enable blur effect"
+msgstr "ぼかし効果を有効にする"
+
+#: prefs.js:19
+msgid "Enable or disable each widget in the widgets folder."
+msgstr "ウィジェットフォルダー内のウィジェットを個別にオン・オフできます。"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:22
+msgid "Ensure all grid cells are perfect squares that cover the desktop."
+msgstr "デスクトップ全体を覆う、正方形のセルを配置します。"
+
+#: widgets/networkWidget.js:145
+msgid "Ethernet"
+msgstr "イーサネット"
+
+#: widgets/weatherWidget.js:483 widgets/weatherWidget.js:546
+msgid "Feels like"
+msgstr "体感温度"
+
+#: widgets/weatherWidget.js:16
+msgid "Fog"
+msgstr "霧"
+
+#: widgets/diskWidget.js:238 widgets/systemWidget.js:310
+msgid "Free"
+msgstr "空き"
+
+#: widgets/diskWidget.js:265
+msgid "Free and used storage space."
+msgstr "ストレージの空き容量と使用量を表示します。"
+
+#: widgets/weatherWidget.js:21 widgets/weatherWidget.js:22
+msgid "Freezing drizzle"
+msgstr "着氷性の霧雨"
+
+#: widgets/weatherWidget.js:26 widgets/weatherWidget.js:27
+msgid "Freezing rain"
+msgstr "着氷性の雨"
+
+#: widgets/batteryWidget.js:65
+msgid "Full"
+msgstr "満充電"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:17
+msgid "Gap spacing between adjacent grid cells in pixels."
+msgstr "隣り合うセルの間隔（ピクセル）。"
+
+#: prefs.js:12
+msgid "Grid"
+msgstr "グリッド"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:16
+msgid "Grid gap in pixels"
+msgstr "グリッドの間隔（ピクセル）"
+
+#: widgets/batteryWidget.js:206
+msgid "Health"
+msgstr "状態"
+
+#: widgets/weatherWidget.js:20
+msgid "Heavy drizzle"
+msgstr "強い霧雨"
+
+#: widgets/weatherWidget.js:25
+msgid "Heavy rain"
+msgstr "大雨"
+
+#: widgets/weatherWidget.js:34
+msgid "Heavy showers"
+msgstr "強いにわか雨"
+
+#: widgets/weatherWidget.js:30
+msgid "Heavy snow"
+msgstr "大雪"
+
+#: widgets/weatherWidget.js:39
+msgid "Heavy thunderstorm"
+msgstr "激しい雷雨"
+
+#: widgets/diskWidget.js:221
+msgid "Home folder"
+msgstr "ホームフォルダー"
+
+#: widgets/weatherWidget.js:488 widgets/weatherWidget.js:550
+msgid "Humidity"
+msgstr "湿度"
+
+#: widgets/batteryWidget.js:67
+msgid "Idle"
+msgstr "待機中"
+
+#: widgets/diskWidget.js:182
+msgid "In use"
+msgstr "使用中"
+
+#: widgets/networkWidget.js:264 widgets/networkWidget.js:287
+msgid "Interface"
+msgstr "インターフェース"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:36
+msgid "Left margin"
+msgstr "左の余白"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:37
+msgid "Left margin from screen edge in pixels."
+msgstr "画面の端から左側に空ける余白（ピクセル）。"
+
+#: widgets/weatherWidget.js:18
+msgid "Light drizzle"
+msgstr "弱い霧雨"
+
+#: widgets/weatherWidget.js:23
+msgid "Light rain"
+msgstr "弱い雨"
+
+#: widgets/weatherWidget.js:32
+msgid "Light showers"
+msgstr "弱いにわか雨"
+
+#: widgets/weatherWidget.js:28
+msgid "Light snow"
+msgstr "弱い雪"
+
+#: widgets/systemWidget.js:156 widgets/systemWidget.js:192
+msgid "Load"
+msgstr "負荷"
+
+#: widgets/weatherWidget.js:79
+msgid "Loading weather…"
+msgstr "天気を読み込み中…"
+
+#: extension.js:311
+msgid "Loading widgets…"
+msgstr "ウィジェットを読み込み中…"
+
+#: widgets/weatherWidget.js:269
+msgid "Local"
+msgstr "現在地"
+
+#: widgets/clockWidget.js:282
+msgid "Local time and world clock."
+msgstr "現在地の時刻と世界時計を表示します。"
+
+#: widgets/weatherWidget.js:170
+msgid "Location unavailable"
+msgstr "場所を取得できません"
+
+#: widgets/clockWidget.js:11
+msgid "London"
+msgstr "ロンドン"
+
+#: widgets/systemWidget.js:336
+msgid "Machine"
+msgstr "マシン"
+
+#: extension.js:198
+msgid "Manage Widgets…"
+msgstr "ウィジェットを管理…"
+
+#: widgets/weatherWidget.js:395 widgets/weatherWidget.js:478
+#: widgets/weatherWidget.js:530 widgets/weatherWidget.js:584
+msgid "Max"
+msgstr "最高"
+
+#: widgets/systemWidget.js:360
+msgid "Memory"
+msgstr "メモリー"
+
+#: widgets/systemWidget.js:305
+msgid "Memory & Storage"
+msgstr "メモリーとストレージ"
+
+#: widgets/weatherWidget.js:395 widgets/weatherWidget.js:478
+#: widgets/weatherWidget.js:530 widgets/weatherWidget.js:584
+msgid "Min"
+msgstr "最低"
+
+#: widgets/networkWidget.js:146 widgets/networkWidget.js:147
+msgid "Mobile"
+msgstr "モバイル"
+
+#: widgets/weatherWidget.js:13
+msgid "Mostly clear"
+msgstr "おおむね晴れ"
+
+#: widgets/diskWidget.js:186
+msgid "Mount"
+msgstr "マウント先"
+
+#: core/desktopItem.js:175
+msgid "Move"
+msgstr "移動"
+
+#: widgets/mediaWidget.js:1104
+msgid "Music"
+msgstr "音楽"
+
+#: widgets/networkWidget.js:203 widgets/networkWidget.js:302
+msgid "Network"
+msgstr "ネットワーク"
+
+#: extension.js:193 extension.js:213
+msgid "New Folder"
+msgstr "新しいフォルダー"
+
+#: extension.js:213
+#, javascript-format
+msgid "New Folder (%d)"
+msgstr "新しいフォルダー（%d）"
+
+#: widgets/clockWidget.js:10
+msgid "New York"
+msgstr "ニューヨーク"
+
+#: widgets/networkWidget.js:156
+msgid "No IP address"
+msgstr "IPアドレスがありません"
+
+#: widgets/networkWidget.js:33 widgets/networkWidget.js:154
+#: widgets/weatherWidget.js:164 widgets/weatherWidget.js:212
+msgid "No connection"
+msgstr "接続なし"
+
+#: widgets/weatherWidget.js:220
+msgid "No data"
+msgstr "データなし"
+
+#: widgets/weatherWidget.js:423
+msgid "No description"
+msgstr "説明なし"
+
+#: extension.js:311
+msgid "No widgets are available."
+msgstr "利用できるウィジェットはありません。"
+
+#: widgets/diskWidget.js:127
+msgid "Not available"
+msgstr "利用不可"
+
+#: widgets/batteryWidget.js:66
+msgid "Not charging"
+msgstr "充電していません"
+
+#: widgets/batteryWidget.js:80
+msgid "Not detected"
+msgstr "検出されません"
+
+#: widgets/notesWidget.js:67 widgets/notesWidget.js:132
+msgid "Notes"
+msgstr "メモ"
+
+#: widgets/mediaWidget.js:188 widgets/mediaWidget.js:671
+msgid "Nothing playing"
+msgstr "再生中の曲はありません"
+
+#: widgets/weatherWidget.js:308
+msgid "Now"
+msgstr "現在"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:11
+msgid "Number of grid columns"
+msgstr "グリッドの列数"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:6
+msgid "Number of grid rows"
+msgstr "グリッドの行数"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:7
+msgid "Number of horizontal rows in the widget grid."
+msgstr "ウィジェットグリッドの横方向の行数。"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:12
+msgid "Number of vertical columns in the widget grid."
+msgstr "ウィジェットグリッドの縦方向の列数。"
+
+#: prefs.js:39
+msgid "Number of vertical rows (e.g. 6, 7, or 8)."
+msgstr "縦方向の行数（例：6、7、8）。"
+
+#: core/desktopItem.js:173
+msgid "Open"
+msgstr "開く"
+
+#: extension.js:194
+msgid "Open Desktop Folder"
+msgstr "デスクトップフォルダーを開く"
+
+#: widgets/mediaWidget.js:189 widgets/mediaWidget.js:672
+msgid "Open a compatible player"
+msgstr "対応プレーヤーを開く"
+
+#: widgets/weatherWidget.js:14
+msgid "Partly cloudy"
+msgstr "晴れ時々くもり"
+
+#: widgets/mediaWidget.js:846
+msgid "Paused"
+msgstr "一時停止中"
+
+#: widgets/mediaWidget.js:1105
+msgid "Playback controls and large album artwork."
+msgstr "再生操作と大きなアルバムアートを表示します。"
+
+#: widgets/mediaWidget.js:845
+msgid "Playing"
+msgstr "再生中"
+
+#: widgets/batteryWidget.js:212
+msgid "Power"
+msgstr "電力"
+
+#: extension.js:411
+msgid "Preview unavailable"
+msgstr "プレビューを表示できません"
+
+#: extension.js:252
+msgid "Preview your widgets and choose which ones appear on the desktop."
+msgstr "ウィジェットをプレビューして、デスクトップに表示するものを選びます。"
+
+#: widgets/systemWidget.js:268
+msgid "Processes"
+msgstr "プロセス"
+
+#: widgets/prototypeWidget.js:59
+msgid "Prototype Widget"
+msgstr "プロトタイプウィジェット"
+
+#: widgets/prototypeWidget.js:98
+msgid "Prototype widget"
+msgstr "プロトタイプウィジェット"
+
+#: widgets/notesWidget.js:133
+msgid "Quick notes from ~/config/widgets@kin/notes.txt."
+msgstr "~/config/widgets@kin/notes.txt のメモを表示します。"
+
+#: widgets/weatherWidget.js:24
+msgid "Rain"
+msgstr "雨"
+
+#: core/desktopItem.js:165
+msgid "Remove from desktop (move to trash)"
+msgstr "デスクトップから削除（ゴミ箱に移動）"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:41
+msgid "Right margin"
+msgstr "右の余白"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:42
+msgid "Right margin from screen edge in pixels."
+msgstr "画面の端から右側に空ける余白（ピクセル）。"
+
+#: widgets/prototypeWidget.js:71
+msgid "Right-click: Edit / Move"
+msgstr "右クリック：編集／移動"
+
+#: widgets/weatherWidget.js:17
+msgid "Rime fog"
+msgstr "霧氷を伴う霧"
+
+#: widgets/diskWidget.js:186
+msgid "Root"
+msgstr "ルート"
+
+#: prefs.js:38
+msgid "Rows"
+msgstr "行数"
+
+#: widgets/clockWidget.js:75
+msgid "Same time"
+msgstr "同じ時刻"
+
+#: prefs.js:69
+msgid "Show grid guides"
+msgstr "グリッドガイドを表示"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:46
+msgid "Show grid overlay on desktop"
+msgstr "デスクトップにグリッドを表示"
+
+#: core/desktopItem.js:174
+msgid "Show in Files"
+msgstr "ファイルで表示"
+
+#: widgets/weatherWidget.js:33
+msgid "Showers"
+msgstr "にわか雨"
+
+#: widgets/prototypeWidget.js:99
+msgid "Shows widget size and editing instructions."
+msgstr "ウィジェットのサイズと編集方法を表示します。"
+
+#: widgets/weatherWidget.js:29
+msgid "Snow"
+msgstr "雪"
+
+#: widgets/weatherWidget.js:31
+msgid "Snow grains"
+msgstr "雪あられ"
+
+#: widgets/weatherWidget.js:35 widgets/weatherWidget.js:36
+msgid "Snow showers"
+msgstr "にわか雪"
+
+#: prefs.js:51
+msgid "Spacing"
+msgstr "間隔"
+
+#: prefs.js:31
+msgid "Square cells (symmetric)"
+msgstr "正方形のセル（左右対称）"
+
+#: prefs.js:89
+msgid "Static blur for all widgets"
+msgstr "すべてのウィジェットに静的ぼかしを使う"
+
+#: widgets/mediaWidget.js:847
+msgid "Stopped"
+msgstr "停止中"
+
+#: widgets/diskWidget.js:116
+msgid "Storage"
+msgstr "ストレージ"
+
+#: widgets/clockWidget.js:13
+msgid "Sydney"
+msgstr "シドニー"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:21
+msgid "Symmetric square grid cells"
+msgstr "左右対称の正方形グリッドセル"
+
+#: widgets/systemWidget.js:150
+msgid "System"
+msgstr "システム"
+
+#: widgets/systemWidget.js:388
+msgid "System resources"
+msgstr "システムリソース"
+
+#: widgets/systemWidget.js:335
+msgid "Tasks"
+msgstr "タスク"
+
+#: widgets/weatherWidget.js:600
+msgid "Temperature, hourly forecast, and conditions."
+msgstr "気温、時間ごとの予報、天気を表示します。"
+
+#: widgets/weatherWidget.js:37
+msgid "Thunderstorm"
+msgstr "雷雨"
+
+#: widgets/weatherWidget.js:38
+msgid "Thunderstorm with hail"
+msgstr "ひょうを伴う雷雨"
+
+#: widgets/clockWidget.js:12
+msgid "Tokyo"
+msgstr "東京"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:26
+msgid "Top margin"
+msgstr "上の余白"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:27
+msgid "Top margin from screen edge in pixels."
+msgstr "画面の端から上側に空ける余白（ピクセル）。"
+
+#: prefs.js:77
+msgid "Translucent frosted-glass effect with background blur."
+msgstr "背景をぼかした、半透明のすりガラス風表示。"
+
+#: widgets/batteryWidget.js:68
+msgid "Unknown"
+msgstr "不明"
+
+#: widgets/mediaWidget.js:632
+msgid "Unknown artist"
+msgstr "不明なアーティスト"
+
+#: widgets/mediaWidget.js:628
+msgid "Untitled"
+msgstr "タイトルなし"
+
+#: widgets/systemWidget.js:264 widgets/systemWidget.js:334
+msgid "Uptime"
+msgstr "稼働時間"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:57
+msgid "Use Blur my Shell's static wallpaper blur instead of dynamic blur for all widgets."
+msgstr "すべてのウィジェットで動的ぼかしの代わりに、Blur my Shell の静的な壁紙ぼかしを使います。"
+
+#: prefs.js:90
+msgid "Use Blur my Shell’s static wallpaper blur instead of live blur."
+msgstr "リアルタイムぼかしの代わりに、Blur my Shell の静的な壁紙ぼかしを使います。"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:56
+msgid "Use static blur on all widgets"
+msgstr "すべてのウィジェットに静的ぼかしを使う"
+
+#: widgets/diskWidget.js:237
+msgid "Used"
+msgstr "使用済み"
+
+#: prefs.js:76
+msgid "Visual effects (blur)"
+msgstr "視覚効果（ぼかし）"
+
+#: widgets/weatherWidget.js:599
+msgid "Weather"
+msgstr "天気"
+
+#: widgets/calendarWidget.js:277
+#, javascript-format
+msgid "Week %d"
+msgstr "第%d週"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:47
+msgid "Whether to render visual grid guidelines on the desktop."
+msgstr "デスクトップにグリッドガイドを表示するかどうか。"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:62
+msgid "Widget module filenames that should not be shown on the desktop."
+msgstr "デスクトップに表示しないウィジェットモジュールのファイル名。"
+
+#: widgets/weatherWidget.js:554
+msgid "Wind"
+msgstr "風"
+
+#: widgets/diskWidget.js:159
+msgid "available"
+msgstr "空き"
+
+#: widgets/systemWidget.js:192
+msgid "cores"
+msgstr "コア"
+
+#: widgets/diskWidget.js:203
+msgid "free of"
+msgstr " / "
+
+#: widgets/diskWidget.js:199
+msgid "in use"
+msgstr "使用中"
+
+#: widgets/diskWidget.js:247 widgets/systemWidget.js:314
+msgid "of"
+msgstr " / "
+
+#: widgets/systemWidget.js:292
+msgid "processing cores"
+msgstr "個の論理コア"
+
+#: widgets/diskWidget.js:247
+msgid "used"
+msgstr "使用済み"
+

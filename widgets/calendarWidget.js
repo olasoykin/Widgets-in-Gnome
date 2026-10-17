@@ -274,15 +274,16 @@ class CalendarWidget extends BaseWidget {
             });
 
             const weekBadge = new St.Label({
-                text: `${_('Week')} ${weekOfYear}`,
+                text: _('Week %d').replace('%d', String(weekOfYear)),
                 style_class: 'widget-badge',
             });
             const dayBadge = new St.Label({
-                text: `${_('Day')} ${dayOfYear} ${_('of the year')}`,
+                text: _('Day %d of the year').replace('%d', String(dayOfYear)),
                 style_class: 'widget-badge',
             });
             const remBadge = new St.Label({
-                text: `${remaining} ${ngettext('day remaining', 'days remaining', remaining)}`,
+                text: ngettext('%d day remaining', '%d days remaining', remaining)
+                    .replace('%d', String(remaining)),
                 style_class: 'widget-badge',
             });
 

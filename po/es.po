@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: widgets@kin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 11:11-0300\n"
+"POT-Creation-Date: 2026-10-17 20:31-0300\n"
 "PO-Revision-Date: 2026-10-17 11:12-0300\n"
 "Last-Translator: Widgets contributors\n"
 "Language-Team: Spanish\n"
@@ -12,544 +12,757 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Grid"
-msgstr "Cuadrícula"
-
-msgid "Desktop widgets"
-msgstr "Widgets del escritorio"
-
-msgid "Enable or disable each widget in the widgets folder."
-msgstr "Activa o desactiva cada widget de la carpeta de widgets."
-
-msgid "Preview your widgets and choose which ones appear on the desktop."
-msgstr "Previsualiza los widgets y elige cuáles aparecen en el escritorio."
-
-msgid "Desktop grid"
-msgstr "Cuadrícula del escritorio"
-
-msgid "Cells fill the desktop while respecting the top bar."
-msgstr "Las celdas ocupan el escritorio respetando la barra superior."
-
-msgid "Square cells (symmetric)"
-msgstr "Celdas cuadradas (simétricas)"
-
-msgid "Calculates proportional square cells that fill the desktop."
-msgstr "Calcula celdas cuadradas proporcionales que ocupan todo el escritorio."
-
-msgid "Rows"
-msgstr "Filas"
-
-msgid "Number of vertical rows (e.g. 6, 7, or 8)."
-msgstr "Número de filas verticales (por ejemplo, 6, 7 u 8)."
-
-msgid "Spacing"
-msgstr "Espaciado"
-
-msgid "Distance between cells in pixels."
-msgstr "Distancia entre celdas en píxeles."
-
-msgid "Display and guides"
-msgstr "Visualización y guías"
-
-msgid "Show grid guides"
-msgstr "Mostrar guías de cuadrícula"
-
-msgid "Draw each cell outline on the desktop background."
-msgstr "Dibuja el contorno de cada celda en el fondo del escritorio."
-
-msgid "Visual effects (blur)"
-msgstr "Efectos visuales (desenfoque)"
-
-msgid "Translucent frosted-glass effect with background blur."
-msgstr "Efecto translúcido de vidrio esmerilado con desenfoque de fondo."
-
-msgid "Dynamic background blur"
-msgstr "Desenfoque dinámico de fondo"
-
-msgid "Apply live acrylic blur using Blur my Shell or native GNOME Shell."
-msgstr "Aplica desenfoque acrílico en tiempo real con Blur my Shell o el desenfoque nativo de GNOME Shell."
-
-msgid "Static blur for all widgets"
-msgstr "Desenfoque estático para todos los widgets"
-
-msgid "Use Blur my Shell’s static wallpaper blur instead of live blur."
-msgstr "Usa el desenfoque estático del fondo de pantalla de Blur my Shell en lugar del desenfoque en tiempo real."
-
-msgid "Charging"
-msgstr "Cargando"
-
-msgid "Discharging"
-msgstr "Descargando"
-
-msgid "Full"
-msgstr "Completa"
-
-msgid "Not charging"
-msgstr "No está cargando"
-
-msgid "Idle"
-msgstr "En reposo"
-
-msgid "Unknown"
-msgstr "Desconocido"
-
-msgid "Not detected"
-msgstr "No detectada"
-
-msgid "Battery"
-msgstr "Batería"
-
-msgid "Health"
-msgstr "Salud"
-
-msgid "Power"
-msgstr "Potencia"
-
-msgid "Cycles"
-msgstr "Ciclos"
-
-msgid "Battery level, health, and power use."
-msgstr "Nivel, estado y consumo de energía de la batería."
-
-msgid "Calendar"
-msgstr "Calendario"
-
-msgid "Week"
-msgstr "Semana"
-
-msgid "Day"
-msgstr "Día"
-
-msgid "of the year"
-msgstr "del año"
-
-msgid "day remaining"
-msgid_plural "days remaining"
-msgstr[0] "día restante"
-msgstr[1] "días restantes"
-
-msgid "Current date and monthly grid."
-msgstr "Fecha actual y cuadrícula mensual."
-
-msgid "New York"
-msgstr "Nueva York"
-
-msgid "London"
-msgstr "Londres"
-
-msgid "Tokyo"
-msgstr "Tokio"
-
-msgid "Sydney"
-msgstr "Sídney"
-
-msgid "Same time"
-msgstr "Misma hora"
-
-msgid "Clock"
-msgstr "Reloj"
-
-msgid "Local time and world clock."
-msgstr "Hora local y reloj mundial."
-
-msgid "Analog clock with local time."
-msgstr "Reloj analógico con hora local."
-
-msgid "Disk"
-msgstr "Disco"
-
-msgid "Storage"
-msgstr "Almacenamiento"
-
-msgid "Not available"
-msgstr "No disponible"
-
-msgid "available"
-msgstr "disponibles"
-
-msgid "Capacity"
-msgstr "Capacidad"
-
-msgid "In use"
-msgstr "En uso"
-
-msgid "Mount"
-msgstr "Montaje"
-
-msgid "Root"
-msgstr "Raíz"
-
-msgid "in use"
-msgstr "en uso"
-
-msgid "free of"
-msgstr "libres de"
-
-msgid "Home folder"
-msgstr "Carpeta personal"
-
-msgid "Used"
-msgstr "Usado"
-
-msgid "Free"
-msgstr "Libre"
-
-msgid "of"
-msgstr "de"
-
-msgid "used"
-msgstr "usados"
-
-msgid "Free and used storage space."
-msgstr "Espacio de almacenamiento libre y utilizado."
-
-msgid "Nothing playing"
-msgstr "No hay reproducción"
-
-msgid "Open a compatible player"
-msgstr "Abre un reproductor compatible"
-
-msgid "Untitled"
-msgstr "Sin título"
-
-msgid "Unknown artist"
-msgstr "Artista desconocido"
-
-msgid "Playing"
-msgstr "Reproduciendo"
-
-msgid "Paused"
-msgstr "En pausa"
-
-msgid "Stopped"
-msgstr "Detenido"
-
-msgid "Music"
-msgstr "Música"
-
-msgid "Playback controls and large album artwork."
-msgstr "Controles de reproducción y carátula grande del álbum."
-
-msgid "No connection"
-msgstr "Sin conexión"
-
-msgid "Ethernet"
-msgstr "Cable"
-
-msgid "Mobile"
-msgstr "Móvil"
-
-msgid "No IP address"
-msgstr "Sin dirección IP"
-
-msgid "Network"
-msgstr "Red"
-
-msgid "Interface"
-msgstr "Interfaz"
-
+#: widgets/calendarWidget.js:285
+#, javascript-format
+msgid "%d day remaining"
+msgid_plural "%d days remaining"
+msgstr[0] "%d día restante"
+msgstr[1] "%d días restantes"
+
+#: widgets/networkWidget.js:303
 msgid "Active connection, local IP, and network speed."
 msgstr "Conexión activa, IP local y velocidad de red."
 
-msgid "Edit the notes file to see them here"
-msgstr "Edita el archivo de notas para verlas aquí"
+#: widgets/clockAnalogWidget.js:192
+msgid "Analog clock with local time."
+msgstr "Reloj analógico con hora local."
 
-msgid "Notes"
-msgstr "Notas"
+#: prefs.js:83
+msgid "Apply live acrylic blur using Blur my Shell or native GNOME Shell."
+msgstr ""
+"Aplica desenfoque acrílico en tiempo real con Blur my Shell o el desenfoque "
+"nativo de GNOME Shell."
 
-msgid "Could not read the notes file"
-msgstr "No se pudo leer el archivo de notas"
-
-msgid "Quick notes from ~/config/widgets@kin/notes.txt."
-msgstr "Notas rápidas desde ~/config/widgets@kin/notes.txt."
-
-msgid "Prototype Widget"
-msgstr "Widget de prueba"
-
-msgid "Right-click: Edit / Move"
-msgstr "Clic derecho: editar / mover"
-
-msgid "Prototype widget"
-msgstr "Widget de prueba"
-
-msgid "Shows widget size and editing instructions."
-msgstr "Muestra el tamaño del widget y las instrucciones de edición."
-
-msgid "System"
-msgstr "Sistema"
-
-msgid "Load"
-msgstr "Carga"
-
-msgid "cores"
-msgstr "núcleos"
-
-msgid "Disabled"
-msgstr "Desactivada"
-
-msgid "Uptime"
-msgstr "Tiempo activo"
-
-msgid "Processes"
-msgstr "Procesos"
-
-msgid "CPU & Processor"
-msgstr "CPU y procesador"
-
+#: widgets/systemWidget.js:291
 msgid "Averages"
 msgstr "Promedios"
 
-msgid "processing cores"
-msgstr "núcleos de procesamiento"
+#: widgets/batteryWidget.js:154 widgets/batteryWidget.js:250
+msgid "Battery"
+msgstr "Batería"
 
-msgid "Memory & Storage"
-msgstr "Memoria y almacenamiento"
+#: widgets/batteryWidget.js:251
+msgid "Battery level, health, and power use."
+msgstr "Nivel, estado y consumo de energía de la batería."
 
-msgid "Cache"
-msgstr "Caché"
-
-msgid "Tasks"
-msgstr "Tareas"
-
-msgid "Machine"
-msgstr "Equipo"
-
-msgid "CPU usage"
-msgstr "Uso de CPU"
-
-msgid "Memory"
-msgstr "Memoria"
-
-msgid "System resources"
-msgstr "Recursos del sistema"
-
-msgid "CPU, memory, swap, and activity."
-msgstr "CPU, memoria, swap y actividad."
-
-msgid "Clear"
-msgstr "Despejado"
-
-msgid "Mostly clear"
-msgstr "Mayormente despejado"
-
-msgid "Partly cloudy"
-msgstr "Parcialmente nublado"
-
-msgid "Cloudy"
-msgstr "Nublado"
-
-msgid "Fog"
-msgstr "Niebla"
-
-msgid "Rime fog"
-msgstr "Niebla con escarcha"
-
-msgid "Light drizzle"
-msgstr "Llovizna ligera"
-
-msgid "Drizzle"
-msgstr "Llovizna"
-
-msgid "Heavy drizzle"
-msgstr "Llovizna intensa"
-
-msgid "Freezing drizzle"
-msgstr "Llovizna helada"
-
-msgid "Light rain"
-msgstr "Lluvia ligera"
-
-msgid "Rain"
-msgstr "Lluvia"
-
-msgid "Heavy rain"
-msgstr "Lluvia intensa"
-
-msgid "Freezing rain"
-msgstr "Lluvia helada"
-
-msgid "Light snow"
-msgstr "Nieve ligera"
-
-msgid "Snow"
-msgstr "Nieve"
-
-msgid "Heavy snow"
-msgstr "Nieve intensa"
-
-msgid "Snow grains"
-msgstr "Granos de nieve"
-
-msgid "Light showers"
-msgstr "Chubascos ligeros"
-
-msgid "Showers"
-msgstr "Chubascos"
-
-msgid "Heavy showers"
-msgstr "Chubascos intensos"
-
-msgid "Snow showers"
-msgstr "Chubascos de nieve"
-
-msgid "Thunderstorm"
-msgstr "Tormenta"
-
-msgid "Thunderstorm with hail"
-msgstr "Tormenta con granizo"
-
-msgid "Heavy thunderstorm"
-msgstr "Tormenta intensa"
-
-msgid "Loading weather…"
-msgstr "Obteniendo clima…"
-
-msgid "Location unavailable"
-msgstr "Ubicación no disponible"
-
-msgid "No data"
-msgstr "Sin datos"
-
-msgid "Weather"
-msgstr "Clima"
-
-msgid "Now"
-msgstr "Ahora"
-
-msgid "Min"
-msgstr "Mín"
-
-msgid "Max"
-msgstr "Máx"
-
-msgid "No description"
-msgstr "Sin descripción"
-
-msgid "Feels like"
-msgstr "Sensación"
-
-msgid "Humidity"
-msgstr "Humedad"
-
-msgid "Wind"
-msgstr "Viento"
-
-msgid "Temperature, hourly forecast, and conditions."
-msgstr "Temperatura, pronóstico por horas y condiciones."
-
-msgid "Remove from desktop (move to trash)"
-msgstr "Quitar del escritorio (mover a la papelera)"
-
-msgid "Open"
-msgstr "Abrir"
-
-msgid "Show in Files"
-msgstr "Mostrar en Archivos"
-
-msgid "Move"
-msgstr "Mover"
-
-msgid "Number of grid rows"
-msgstr "Número de filas de la cuadrícula"
-
-msgid "Number of horizontal rows in the widget grid."
-msgstr "Número de filas horizontales de la cuadrícula de widgets."
-
-msgid "Number of grid columns"
-msgstr "Número de columnas de la cuadrícula"
-
-msgid "Number of vertical columns in the widget grid."
-msgstr "Número de columnas verticales de la cuadrícula de widgets."
-
-msgid "Grid gap in pixels"
-msgstr "Espaciado de la cuadrícula en píxeles"
-
-msgid "Gap spacing between adjacent grid cells in pixels."
-msgstr "Espacio en píxeles entre celdas adyacentes de la cuadrícula."
-
-msgid "Symmetric square grid cells"
-msgstr "Celdas cuadradas simétricas"
-
-msgid "Ensure all grid cells are perfect squares that cover the desktop."
-msgstr "Hace que todas las celdas sean cuadrados perfectos que cubren el escritorio."
-
-msgid "Top margin"
-msgstr "Margen superior"
-
-msgid "Top margin from screen edge in pixels."
-msgstr "Margen superior en píxeles desde el borde de la pantalla."
-
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:31
 msgid "Bottom margin"
 msgstr "Margen inferior"
 
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:32
 msgid "Bottom margin from screen edge in pixels."
 msgstr "Margen inferior en píxeles desde el borde de la pantalla."
 
-msgid "Left margin"
-msgstr "Margen izquierdo"
+#: widgets/systemWidget.js:287
+msgid "CPU & Processor"
+msgstr "CPU y procesador"
 
-msgid "Left margin from screen edge in pixels."
-msgstr "Margen izquierdo en píxeles desde el borde de la pantalla."
+#: widgets/systemWidget.js:345
+msgid "CPU usage"
+msgstr "Uso de CPU"
 
-msgid "Right margin"
-msgstr "Margen derecho"
+#: widgets/systemWidget.js:389
+msgid "CPU, memory, swap, and activity."
+msgstr "CPU, memoria, swap y actividad."
 
-msgid "Right margin from screen edge in pixels."
-msgstr "Margen derecho en píxeles desde el borde de la pantalla."
+#: widgets/systemWidget.js:310
+msgid "Cache"
+msgstr "Caché"
 
-msgid "Show grid overlay on desktop"
-msgstr "Mostrar cuadrícula en el escritorio"
+#: prefs.js:32
+msgid "Calculates proportional square cells that fill the desktop."
+msgstr "Calcula celdas cuadradas proporcionales que ocupan todo el escritorio."
 
-msgid "Whether to render visual grid guidelines on the desktop."
-msgstr "Determina si se muestran guías visuales de la cuadrícula en el escritorio."
+#: widgets/calendarWidget.js:321
+msgid "Calendar"
+msgstr "Calendario"
 
-msgid "Enable blur effect"
-msgstr "Activar efecto de desenfoque"
+#: widgets/diskWidget.js:178
+msgid "Capacity"
+msgstr "Capacidad"
 
-msgid "Enable acrylic frosted glass blur effect on widgets using Blur my Shell or GNOME native blur."
-msgstr "Activa el efecto acrílico translúcido en los widgets mediante Blur my Shell o el desenfoque nativo de GNOME."
+#: prefs.js:26
+msgid "Cells fill the desktop while respecting the top bar."
+msgstr "Las celdas ocupan el escritorio respetando la barra superior."
 
-msgid "Disabled desktop widgets"
-msgstr "Widgets del escritorio desactivados"
-
-msgid "Widget module filenames that should not be shown on the desktop."
-msgstr "Nombres de archivo de los módulos que no se deben mostrar en el escritorio."
-
+#: extension.js:191
 msgid "Change Background…"
 msgstr "Cambiar fondo…"
 
-msgid "Display Settings"
-msgstr "Configuración de pantalla"
+#: widgets/batteryWidget.js:63
+msgid "Charging"
+msgstr "Cargando"
 
-msgid "Open Desktop Folder"
-msgstr "Abrir carpeta del escritorio"
+#: widgets/weatherWidget.js:12
+msgid "Clear"
+msgstr "Despejado"
 
-msgid "New Folder"
-msgstr "Nueva carpeta"
+#: widgets/clockAnalogWidget.js:191 widgets/clockWidget.js:281
+msgid "Clock"
+msgstr "Reloj"
 
-msgid "New Folder (%d)"
-msgstr "Nueva carpeta (%d)"
-
-msgid "Widgets"
-msgstr "Widgets"
-
-msgid "Manage Widgets…"
-msgstr "Administrar widgets…"
-
-msgid "No widgets are available."
-msgstr "No hay widgets disponibles."
-
-msgid "Preview unavailable"
-msgstr "Vista previa no disponible"
-
+#: extension.js:276
 msgid "Close"
 msgstr "Cerrar"
 
+#: widgets/weatherWidget.js:15
+msgid "Cloudy"
+msgstr "Nublado"
+
+#: widgets/notesWidget.js:115
+msgid "Could not read the notes file"
+msgstr "No se pudo leer el archivo de notas"
+
+#: widgets/calendarWidget.js:322
+msgid "Current date and monthly grid."
+msgstr "Fecha actual y cuadrícula mensual."
+
+#: widgets/batteryWidget.js:224
+msgid "Cycles"
+msgstr "Ciclos"
+
+#: widgets/calendarWidget.js:281
+#, javascript-format
+msgid "Day %d of the year"
+msgstr "Día %d del año"
+
+#: extension.js:200
 msgid "Desktop Settings"
 msgstr "Configuración del escritorio"
 
+#: prefs.js:25
+msgid "Desktop grid"
+msgstr "Cuadrícula del escritorio"
+
+#: extension.js:247 prefs.js:18
+msgid "Desktop widgets"
+msgstr "Widgets del escritorio"
+
+#: widgets/systemWidget.js:239
+msgid "Disabled"
+msgstr "Desactivada"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:61
+msgid "Disabled desktop widgets"
+msgstr "Widgets del escritorio desactivados"
+
+#: widgets/batteryWidget.js:64
+msgid "Discharging"
+msgstr "Descargando"
+
+#: widgets/diskWidget.js:110 widgets/diskWidget.js:264
+msgid "Disk"
+msgstr "Disco"
+
+#: extension.js:192
+msgid "Display Settings"
+msgstr "Configuración de pantalla"
+
+#: prefs.js:64
+msgid "Display and guides"
+msgstr "Visualización y guías"
+
+#: prefs.js:52
+msgid "Distance between cells in pixels."
+msgstr "Distancia entre celdas en píxeles."
+
+#: prefs.js:70
+msgid "Draw each cell outline on the desktop background."
+msgstr "Dibuja el contorno de cada celda en el fondo del escritorio."
+
+#: widgets/weatherWidget.js:19
+msgid "Drizzle"
+msgstr "Llovizna"
+
+#: prefs.js:82
+msgid "Dynamic background blur"
+msgstr "Desenfoque dinámico de fondo"
+
+#: widgets/notesWidget.js:11
+msgid "Edit the notes file to see them here"
+msgstr "Edita el archivo de notas para verlas aquí"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:52
+msgid ""
+"Enable acrylic frosted glass blur effect on widgets using Blur my Shell or "
+"GNOME native blur."
+msgstr ""
+"Activa el efecto acrílico translúcido en los widgets mediante Blur my Shell "
+"o el desenfoque nativo de GNOME."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:51
+msgid "Enable blur effect"
+msgstr "Activar efecto de desenfoque"
+
+#: prefs.js:19
+msgid "Enable or disable each widget in the widgets folder."
+msgstr "Activa o desactiva cada widget de la carpeta de widgets."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:22
+msgid "Ensure all grid cells are perfect squares that cover the desktop."
+msgstr ""
+"Hace que todas las celdas sean cuadrados perfectos que cubren el escritorio."
+
+#: widgets/networkWidget.js:145
+msgid "Ethernet"
+msgstr "Cable"
+
+#: widgets/weatherWidget.js:483 widgets/weatherWidget.js:546
+msgid "Feels like"
+msgstr "Sensación"
+
+#: widgets/weatherWidget.js:16
+msgid "Fog"
+msgstr "Niebla"
+
+#: widgets/diskWidget.js:238 widgets/systemWidget.js:310
+msgid "Free"
+msgstr "Libre"
+
+#: widgets/diskWidget.js:265
+msgid "Free and used storage space."
+msgstr "Espacio de almacenamiento libre y utilizado."
+
+#: widgets/weatherWidget.js:21 widgets/weatherWidget.js:22
+msgid "Freezing drizzle"
+msgstr "Llovizna helada"
+
+#: widgets/weatherWidget.js:26 widgets/weatherWidget.js:27
+msgid "Freezing rain"
+msgstr "Lluvia helada"
+
+#: widgets/batteryWidget.js:65
+msgid "Full"
+msgstr "Completa"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:17
+msgid "Gap spacing between adjacent grid cells in pixels."
+msgstr "Espacio en píxeles entre celdas adyacentes de la cuadrícula."
+
+#: prefs.js:12
+msgid "Grid"
+msgstr "Cuadrícula"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:16
+msgid "Grid gap in pixels"
+msgstr "Espaciado de la cuadrícula en píxeles"
+
+#: widgets/batteryWidget.js:206
+msgid "Health"
+msgstr "Salud"
+
+#: widgets/weatherWidget.js:20
+msgid "Heavy drizzle"
+msgstr "Llovizna intensa"
+
+#: widgets/weatherWidget.js:25
+msgid "Heavy rain"
+msgstr "Lluvia intensa"
+
+#: widgets/weatherWidget.js:34
+msgid "Heavy showers"
+msgstr "Chubascos intensos"
+
+#: widgets/weatherWidget.js:30
+msgid "Heavy snow"
+msgstr "Nieve intensa"
+
+#: widgets/weatherWidget.js:39
+msgid "Heavy thunderstorm"
+msgstr "Tormenta intensa"
+
+#: widgets/diskWidget.js:221
+msgid "Home folder"
+msgstr "Carpeta personal"
+
+#: widgets/weatherWidget.js:488 widgets/weatherWidget.js:550
+msgid "Humidity"
+msgstr "Humedad"
+
+#: widgets/batteryWidget.js:67
+msgid "Idle"
+msgstr "En reposo"
+
+#: widgets/diskWidget.js:182
+msgid "In use"
+msgstr "En uso"
+
+#: widgets/networkWidget.js:264 widgets/networkWidget.js:287
+msgid "Interface"
+msgstr "Interfaz"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:36
+msgid "Left margin"
+msgstr "Margen izquierdo"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:37
+msgid "Left margin from screen edge in pixels."
+msgstr "Margen izquierdo en píxeles desde el borde de la pantalla."
+
+#: widgets/weatherWidget.js:18
+msgid "Light drizzle"
+msgstr "Llovizna ligera"
+
+#: widgets/weatherWidget.js:23
+msgid "Light rain"
+msgstr "Lluvia ligera"
+
+#: widgets/weatherWidget.js:32
+msgid "Light showers"
+msgstr "Chubascos ligeros"
+
+#: widgets/weatherWidget.js:28
+msgid "Light snow"
+msgstr "Nieve ligera"
+
+#: widgets/systemWidget.js:156 widgets/systemWidget.js:192
+msgid "Load"
+msgstr "Carga"
+
+#: widgets/weatherWidget.js:79
+msgid "Loading weather…"
+msgstr "Obteniendo clima…"
+
+#: extension.js:311
 msgid "Loading widgets…"
 msgstr "Cargando widgets…"
 
-msgid "Show"
-msgstr "Mostrar"
+#: widgets/weatherWidget.js:269
+msgid "Local"
+msgstr ""
+
+#: widgets/clockWidget.js:282
+msgid "Local time and world clock."
+msgstr "Hora local y reloj mundial."
+
+#: widgets/weatherWidget.js:170
+msgid "Location unavailable"
+msgstr "Ubicación no disponible"
+
+#: widgets/clockWidget.js:11
+msgid "London"
+msgstr "Londres"
+
+#: widgets/systemWidget.js:336
+msgid "Machine"
+msgstr "Equipo"
+
+#: extension.js:198
+msgid "Manage Widgets…"
+msgstr "Administrar widgets…"
+
+#: widgets/weatherWidget.js:395 widgets/weatherWidget.js:478
+#: widgets/weatherWidget.js:530 widgets/weatherWidget.js:584
+msgid "Max"
+msgstr "Máx"
+
+#: widgets/systemWidget.js:360
+msgid "Memory"
+msgstr "Memoria"
+
+#: widgets/systemWidget.js:305
+msgid "Memory & Storage"
+msgstr "Memoria y almacenamiento"
+
+#: widgets/weatherWidget.js:395 widgets/weatherWidget.js:478
+#: widgets/weatherWidget.js:530 widgets/weatherWidget.js:584
+msgid "Min"
+msgstr "Mín"
+
+#: widgets/networkWidget.js:146 widgets/networkWidget.js:147
+msgid "Mobile"
+msgstr "Móvil"
+
+#: widgets/weatherWidget.js:13
+msgid "Mostly clear"
+msgstr "Mayormente despejado"
+
+#: widgets/diskWidget.js:186
+msgid "Mount"
+msgstr "Montaje"
+
+#: core/desktopItem.js:175
+msgid "Move"
+msgstr "Mover"
+
+#: widgets/mediaWidget.js:1104
+msgid "Music"
+msgstr "Música"
+
+#: widgets/networkWidget.js:203 widgets/networkWidget.js:302
+msgid "Network"
+msgstr "Red"
+
+#: extension.js:193 extension.js:213
+msgid "New Folder"
+msgstr "Nueva carpeta"
+
+#: extension.js:213
+#, javascript-format
+msgid "New Folder (%d)"
+msgstr "Nueva carpeta (%d)"
+
+#: widgets/clockWidget.js:10
+msgid "New York"
+msgstr "Nueva York"
+
+#: widgets/networkWidget.js:156
+msgid "No IP address"
+msgstr "Sin dirección IP"
+
+#: widgets/networkWidget.js:33 widgets/networkWidget.js:154
+#: widgets/weatherWidget.js:164 widgets/weatherWidget.js:212
+msgid "No connection"
+msgstr "Sin conexión"
+
+#: widgets/weatherWidget.js:220
+msgid "No data"
+msgstr "Sin datos"
+
+#: widgets/weatherWidget.js:423
+msgid "No description"
+msgstr "Sin descripción"
+
+#: extension.js:311
+msgid "No widgets are available."
+msgstr "No hay widgets disponibles."
+
+#: widgets/diskWidget.js:127
+msgid "Not available"
+msgstr "No disponible"
+
+#: widgets/batteryWidget.js:66
+msgid "Not charging"
+msgstr "No está cargando"
+
+#: widgets/batteryWidget.js:80
+msgid "Not detected"
+msgstr "No detectada"
+
+#: widgets/notesWidget.js:67 widgets/notesWidget.js:132
+msgid "Notes"
+msgstr "Notas"
+
+#: widgets/mediaWidget.js:188 widgets/mediaWidget.js:671
+msgid "Nothing playing"
+msgstr "No hay reproducción"
+
+#: widgets/weatherWidget.js:308
+msgid "Now"
+msgstr "Ahora"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:11
+msgid "Number of grid columns"
+msgstr "Número de columnas de la cuadrícula"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:6
+msgid "Number of grid rows"
+msgstr "Número de filas de la cuadrícula"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:7
+msgid "Number of horizontal rows in the widget grid."
+msgstr "Número de filas horizontales de la cuadrícula de widgets."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:12
+msgid "Number of vertical columns in the widget grid."
+msgstr "Número de columnas verticales de la cuadrícula de widgets."
+
+#: prefs.js:39
+msgid "Number of vertical rows (e.g. 6, 7, or 8)."
+msgstr "Número de filas verticales (por ejemplo, 6, 7 u 8)."
+
+#: core/desktopItem.js:173
+msgid "Open"
+msgstr "Abrir"
+
+#: extension.js:194
+msgid "Open Desktop Folder"
+msgstr "Abrir carpeta del escritorio"
+
+#: widgets/mediaWidget.js:189 widgets/mediaWidget.js:672
+msgid "Open a compatible player"
+msgstr "Abre un reproductor compatible"
+
+#: widgets/weatherWidget.js:14
+msgid "Partly cloudy"
+msgstr "Parcialmente nublado"
+
+#: widgets/mediaWidget.js:846
+msgid "Paused"
+msgstr "En pausa"
+
+#: widgets/mediaWidget.js:1105
+msgid "Playback controls and large album artwork."
+msgstr "Controles de reproducción y carátula grande del álbum."
+
+#: widgets/mediaWidget.js:845
+msgid "Playing"
+msgstr "Reproduciendo"
+
+#: widgets/batteryWidget.js:212
+msgid "Power"
+msgstr "Potencia"
+
+#: extension.js:411
+msgid "Preview unavailable"
+msgstr "Vista previa no disponible"
+
+#: extension.js:252
+msgid "Preview your widgets and choose which ones appear on the desktop."
+msgstr "Previsualiza los widgets y elige cuáles aparecen en el escritorio."
+
+#: widgets/systemWidget.js:268
+msgid "Processes"
+msgstr "Procesos"
+
+#: widgets/prototypeWidget.js:59
+msgid "Prototype Widget"
+msgstr "Widget de prueba"
+
+#: widgets/prototypeWidget.js:98
+msgid "Prototype widget"
+msgstr "Widget de prueba"
+
+#: widgets/notesWidget.js:133
+msgid "Quick notes from ~/config/widgets@kin/notes.txt."
+msgstr "Notas rápidas desde ~/config/widgets@kin/notes.txt."
+
+#: widgets/weatherWidget.js:24
+msgid "Rain"
+msgstr "Lluvia"
+
+#: core/desktopItem.js:165
+msgid "Remove from desktop (move to trash)"
+msgstr "Quitar del escritorio (mover a la papelera)"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:41
+msgid "Right margin"
+msgstr "Margen derecho"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:42
+msgid "Right margin from screen edge in pixels."
+msgstr "Margen derecho en píxeles desde el borde de la pantalla."
+
+#: widgets/prototypeWidget.js:71
+msgid "Right-click: Edit / Move"
+msgstr "Clic derecho: editar / mover"
+
+#: widgets/weatherWidget.js:17
+msgid "Rime fog"
+msgstr "Niebla con escarcha"
+
+#: widgets/diskWidget.js:186
+msgid "Root"
+msgstr "Raíz"
+
+#: prefs.js:38
+msgid "Rows"
+msgstr "Filas"
+
+#: widgets/clockWidget.js:75
+msgid "Same time"
+msgstr "Misma hora"
+
+#: prefs.js:69
+msgid "Show grid guides"
+msgstr "Mostrar guías de cuadrícula"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:46
+msgid "Show grid overlay on desktop"
+msgstr "Mostrar cuadrícula en el escritorio"
+
+#: core/desktopItem.js:174
+msgid "Show in Files"
+msgstr "Mostrar en Archivos"
+
+#: widgets/weatherWidget.js:33
+msgid "Showers"
+msgstr "Chubascos"
+
+#: widgets/prototypeWidget.js:99
+msgid "Shows widget size and editing instructions."
+msgstr "Muestra el tamaño del widget y las instrucciones de edición."
+
+#: widgets/weatherWidget.js:29
+msgid "Snow"
+msgstr "Nieve"
+
+#: widgets/weatherWidget.js:31
+msgid "Snow grains"
+msgstr "Granos de nieve"
+
+#: widgets/weatherWidget.js:35 widgets/weatherWidget.js:36
+msgid "Snow showers"
+msgstr "Chubascos de nieve"
+
+#: prefs.js:51
+msgid "Spacing"
+msgstr "Espaciado"
+
+#: prefs.js:31
+msgid "Square cells (symmetric)"
+msgstr "Celdas cuadradas (simétricas)"
+
+#: prefs.js:89
+msgid "Static blur for all widgets"
+msgstr "Desenfoque estático para todos los widgets"
+
+#: widgets/mediaWidget.js:847
+msgid "Stopped"
+msgstr "Detenido"
+
+#: widgets/diskWidget.js:116
+msgid "Storage"
+msgstr "Almacenamiento"
+
+#: widgets/clockWidget.js:13
+msgid "Sydney"
+msgstr "Sídney"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:21
+msgid "Symmetric square grid cells"
+msgstr "Celdas cuadradas simétricas"
+
+#: widgets/systemWidget.js:150
+msgid "System"
+msgstr "Sistema"
+
+#: widgets/systemWidget.js:388
+msgid "System resources"
+msgstr "Recursos del sistema"
+
+#: widgets/systemWidget.js:335
+msgid "Tasks"
+msgstr "Tareas"
+
+#: widgets/weatherWidget.js:600
+msgid "Temperature, hourly forecast, and conditions."
+msgstr "Temperatura, pronóstico por horas y condiciones."
+
+#: widgets/weatherWidget.js:37
+msgid "Thunderstorm"
+msgstr "Tormenta"
+
+#: widgets/weatherWidget.js:38
+msgid "Thunderstorm with hail"
+msgstr "Tormenta con granizo"
+
+#: widgets/clockWidget.js:12
+msgid "Tokyo"
+msgstr "Tokio"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:26
+msgid "Top margin"
+msgstr "Margen superior"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:27
+msgid "Top margin from screen edge in pixels."
+msgstr "Margen superior en píxeles desde el borde de la pantalla."
+
+#: prefs.js:77
+msgid "Translucent frosted-glass effect with background blur."
+msgstr "Efecto translúcido de vidrio esmerilado con desenfoque de fondo."
+
+#: widgets/batteryWidget.js:68
+msgid "Unknown"
+msgstr "Desconocido"
+
+#: widgets/mediaWidget.js:632
+msgid "Unknown artist"
+msgstr "Artista desconocido"
+
+#: widgets/mediaWidget.js:628
+msgid "Untitled"
+msgstr "Sin título"
+
+#: widgets/systemWidget.js:264 widgets/systemWidget.js:334
+msgid "Uptime"
+msgstr "Tiempo activo"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:57
+#, fuzzy
+msgid ""
+"Use Blur my Shell's static wallpaper blur instead of dynamic blur for all "
+"widgets."
+msgstr ""
+"Usa el desenfoque estático del fondo de pantalla de Blur my Shell en lugar "
+"del desenfoque en tiempo real."
+
+#: prefs.js:90
+msgid "Use Blur my Shell’s static wallpaper blur instead of live blur."
+msgstr ""
+"Usa el desenfoque estático del fondo de pantalla de Blur my Shell en lugar "
+"del desenfoque en tiempo real."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:56
+#, fuzzy
+msgid "Use static blur on all widgets"
+msgstr "Desenfoque estático para todos los widgets"
+
+#: widgets/diskWidget.js:237
+msgid "Used"
+msgstr "Usado"
+
+#: prefs.js:76
+msgid "Visual effects (blur)"
+msgstr "Efectos visuales (desenfoque)"
+
+#: widgets/weatherWidget.js:599
+msgid "Weather"
+msgstr "Clima"
+
+#: widgets/calendarWidget.js:277
+#, javascript-format
+msgid "Week %d"
+msgstr "Semana %d"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:47
+msgid "Whether to render visual grid guidelines on the desktop."
+msgstr ""
+"Determina si se muestran guías visuales de la cuadrícula en el escritorio."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:62
+msgid "Widget module filenames that should not be shown on the desktop."
+msgstr ""
+"Nombres de archivo de los módulos que no se deben mostrar en el escritorio."
+
+#: widgets/weatherWidget.js:554
+msgid "Wind"
+msgstr "Viento"
+
+#: widgets/diskWidget.js:159
+msgid "available"
+msgstr "disponibles"
+
+#: widgets/systemWidget.js:192
+msgid "cores"
+msgstr "núcleos"
+
+#: widgets/diskWidget.js:203
+msgid "free of"
+msgstr "libres de"
+
+#: widgets/diskWidget.js:199
+msgid "in use"
+msgstr "en uso"
+
+#: widgets/diskWidget.js:247 widgets/systemWidget.js:314
+msgid "of"
+msgstr "de"
+
+#: widgets/systemWidget.js:292
+msgid "processing cores"
+msgstr "núcleos de procesamiento"
+
+#: widgets/diskWidget.js:247
+msgid "used"
+msgstr "usados"
+
+#~ msgid "Day"
+#~ msgstr "Día"
+
+#~ msgid "Widgets"
+#~ msgstr "Widgets"
+
+#~ msgid "Show"
+#~ msgstr "Mostrar"
