@@ -21,6 +21,9 @@ msgstr "Widgets del escritorio"
 msgid "Enable or disable each widget in the widgets folder."
 msgstr "Activa o desactiva cada widget de la carpeta de widgets."
 
+msgid "Preview your widgets and choose which ones appear on the desktop."
+msgstr "Previsualiza los widgets y elige cuáles aparecen en el escritorio."
+
 msgid "Desktop grid"
 msgstr "Cuadrícula del escritorio"
 
@@ -60,11 +63,17 @@ msgstr "Efectos visuales (desenfoque)"
 msgid "Translucent frosted-glass effect with background blur."
 msgstr "Efecto translúcido de vidrio esmerilado con desenfoque de fondo."
 
-msgid "Background blur"
-msgstr "Desenfoque de fondo"
+msgid "Dynamic background blur"
+msgstr "Desenfoque dinámico de fondo"
 
-msgid "Apply acrylic blur using Blur my Shell or native GNOME Shell."
-msgstr "Aplica desenfoque acrílico con Blur my Shell o el desenfoque nativo de GNOME Shell."
+msgid "Apply live acrylic blur using Blur my Shell or native GNOME Shell."
+msgstr "Aplica desenfoque acrílico en tiempo real con Blur my Shell o el desenfoque nativo de GNOME Shell."
+
+msgid "Static blur for all widgets"
+msgstr "Desenfoque estático para todos los widgets"
+
+msgid "Use Blur my Shell’s static wallpaper blur instead of live blur."
+msgstr "Usa el desenfoque estático del fondo de pantalla de Blur my Shell en lugar del desenfoque en tiempo real."
 
 msgid "Charging"
 msgstr "Cargando"
@@ -505,3 +514,42 @@ msgstr "Widgets del escritorio desactivados"
 
 msgid "Widget module filenames that should not be shown on the desktop."
 msgstr "Nombres de archivo de los módulos que no se deben mostrar en el escritorio."
+
+msgid "Change Background…"
+msgstr "Cambiar fondo…"
+
+msgid "Display Settings"
+msgstr "Configuración de pantalla"
+
+msgid "Open Desktop Folder"
+msgstr "Abrir carpeta del escritorio"
+
+msgid "New Folder"
+msgstr "Nueva carpeta"
+
+msgid "New Folder (%d)"
+msgstr "Nueva carpeta (%d)"
+
+msgid "Widgets"
+msgstr "Widgets"
+
+msgid "Manage Widgets…"
+msgstr "Administrar widgets…"
+
+msgid "No widgets are available."
+msgstr "No hay widgets disponibles."
+
+msgid "Preview unavailable"
+msgstr "Vista previa no disponible"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Desktop Settings"
+msgstr "Configuración del escritorio"
+
+msgid "Loading widgets…"
+msgstr "Cargando widgets…"
+
+msgid "Show"
+msgstr "Mostrar"

@@ -167,6 +167,9 @@ class MediaWidget extends BaseWidget {
             rowSpan: params.rowSpan ?? 3,
         });
 
+        // Keep music metadata at its per-layout CSS size when the widget is resized.
+        this._disableAdaptiveText = true;
+
         this._playerName = null;
         this._lastRenderedKey = null;
         this._artworkSource = null;
@@ -230,9 +233,12 @@ class MediaWidget extends BaseWidget {
     onGeometryChanged() {
         const isTall = this.rowSpan >= 3;
         const isWideTall = this.colSpan >= 4 && this.rowSpan === 3;
+        const { width, height } = this._getTargetSize();
         const coverSize = isWideTall
-            ? this._getWideTallCoverSize()
-            : isTall ? this._getTallCoverSize() : '';
+            ? this._getWideTallCoverSize(width, height)
+            : isTall
+                ? this._getTallCoverSize(width, height)
+                : this.sizeTier === 'medium' ? this._getMediumCoverSize(width, height) : '';
         const layoutKey = `${this.sizeTier}-${isWideTall ? 'wide-tall' : isTall ? 'tall' : 'flat'}`;
         const key = `${layoutKey}-${coverSize}`;
         if (this._lastRenderedKey !== key) {
@@ -242,30 +248,37 @@ class MediaWidget extends BaseWidget {
         }
     }
 
-    _getTallCoverSize() {
-        if (this.width <= 0 || this.height <= 0) return 180;
+    _getTargetSize() {
+        const rect = this.grid?.getCellRect(this.col, this.row, this.colSpan, this.rowSpan);
+        return rect
+            ? { width: rect.width, height: rect.height }
+            : { width: this.width, height: this.height };
+    }
+
+    _getTallCoverSize(width = this.width, height = this.height) {
+        if (width <= 0 || height <= 0) return 180;
         return Math.max(84, Math.min(
             236,
-            Math.floor(this.width - 48),
-            Math.floor(this.height - 212)
+            Math.floor(width - 48),
+            Math.floor(height - 212)
         ));
     }
 
-    _getWideTallCoverSize() {
-        if (this.width <= 0 || this.height <= 0) return 200;
+    _getWideTallCoverSize(width = this.width, height = this.height) {
+        if (width <= 0 || height <= 0) return 200;
         return Math.max(120, Math.min(
             250,
-            Math.floor(this.width * 0.42),
-            Math.floor(this.height - 112)
+            Math.floor(width * 0.42),
+            Math.floor(height - 112)
         ));
     }
 
-    _getMediumCoverSize() {
-        if (this.width <= 0 || this.height <= 0) return 112;
+    _getMediumCoverSize(width = this.width, height = this.height) {
+        if (width <= 0 || height <= 0) return 112;
         return Math.max(80, Math.min(
             148,
-            Math.floor(this.width * 0.34),
-            Math.floor(this.height - 48)
+            Math.floor(width * 0.34),
+            Math.floor(height - 48)
         ));
     }
 
@@ -817,9 +830,12 @@ class MediaWidget extends BaseWidget {
         const tier = this.sizeTier;
         const isTall = this.rowSpan >= 3;
         const isWideTall = this.colSpan >= 4 && this.rowSpan === 3;
+        const { width, height } = this._getTargetSize();
         const coverSize = isWideTall
-            ? this._getWideTallCoverSize()
-            : isTall ? this._getTallCoverSize() : '';
+            ? this._getWideTallCoverSize(width, height)
+            : isTall
+                ? this._getTallCoverSize(width, height)
+                : tier === 'medium' ? this._getMediumCoverSize(width, height) : '';
         const key = `${tier}-${isWideTall ? 'wide-tall' : isTall ? 'tall' : 'flat'}-${coverSize}`;
         this._lastRenderedKey = key;
         this._lastRenderedLayoutKey = `${tier}-${isWideTall ? 'wide-tall' : isTall ? 'tall' : 'flat'}`;
@@ -956,11 +972,9 @@ class MediaWidget extends BaseWidget {
                 splitRow.add_child(infoColumn);
                 contentBox.add_child(splitRow);
             } else {
-                const spacerTop = new St.Widget({ y_expand: true });
                 const spacerBottom = new St.Widget({ y_expand: true });
                 cover.x_align = Clutter.ActorAlign.CENTER;
                 cover.y_align = Clutter.ActorAlign.CENTER;
-                contentBox.add_child(spacerTop);
                 contentBox.add_child(cover);
                 contentBox.add_child(infoBox);
                 contentBox.add_child(timeline);
@@ -978,7 +992,7 @@ class MediaWidget extends BaseWidget {
                 y_align: Clutter.ActorAlign.CENTER,
             });
 
-            const coverBox = this._buildCoverActor(data.artUrl, this._getMediumCoverSize());
+            const coverBox = this._buildCoverActor(data.artUrl, this._getMediumCoverSize(width, height));
 
             const infoCol = new St.BoxLayout({
                 orientation: Clutter.Orientation.VERTICAL,
@@ -1002,7 +1016,7 @@ class MediaWidget extends BaseWidget {
 
             const artistLabel = new St.Label({
                 text: data.album ? `${data.artist} · ${data.album}` : data.artist,
-                style_class: 'widget-common-detail',
+                style_class: 'widget-media-artist-medium',
             });
             artistLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
@@ -1030,11 +1044,29 @@ class MediaWidget extends BaseWidget {
             });
             const smallEq = new EqualizerBars({ width: 14, height: 11 });
             smallEq.setPlaying(data.status === 'Playing');
-            titleRow.add_child(titleLabel);
+            const smallTitleLabel = new St.Label({
+                text: data.title,
+                style_class: 'widget-media-small-title',
+                x_expand: true,
+                x_align: Clutter.ActorAlign.START,
+            });
+            smallTitleLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+            smallTitleLabel.clutter_text.line_wrap = false;
+
+            const smallArtistLabel = new St.Label({
+                text: data.album ? `${data.artist} · ${data.album}` : data.artist,
+                style_class: 'widget-media-small-artist',
+                x_expand: true,
+                x_align: Clutter.ActorAlign.START,
+            });
+            smallArtistLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+            smallArtistLabel.clutter_text.line_wrap = false;
+
+            titleRow.add_child(smallTitleLabel);
             titleRow.add_child(smallEq);
 
             overlay.add_child(titleRow);
-            overlay.add_child(artistLabel);
+            overlay.add_child(smallArtistLabel);
             const controls = this._createControls(data.status, false);
             controls.add_style_class_name('widget-media-small-controls');
             overlay.add_child(controls);

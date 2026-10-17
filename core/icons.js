@@ -13,7 +13,7 @@ const NATIVE_ICON_MAP = {
     wifi: 'network-wireless-symbolic',
     notebook: 'accessories-text-editor-symbolic',
     cpu: 'utilities-system-monitor-symbolic',
-    cloud: 'weather-cloud-symbolic',
+    cloud: 'weather-overcast-symbolic',
     sun: 'weather-clear-symbolic',
     rain: 'weather-showers-symbolic',
     storm: 'weather-storm-symbolic',
@@ -25,6 +25,9 @@ const NATIVE_ICON_MAP = {
     'cloud-sun': 'weather-few-clouds-symbolic',
     'cloud-moon': 'weather-few-clouds-night-symbolic',
     'cloud-fog': 'weather-fog-symbolic',
+    'cloud-snow': 'weather-snow-symbolic',
+    'cloud-storm': 'weather-storm-symbolic',
+    mist: 'weather-fog-symbolic',
 };
 
 export function getWidgetIcon(name) {

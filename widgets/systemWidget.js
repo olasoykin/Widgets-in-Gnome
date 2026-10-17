@@ -4,7 +4,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-import { BaseWidget } from '../core/baseWidget.js';
+import { BaseWidget, configureWidgetCaption } from '../core/baseWidget.js';
 import { createIcon } from '../core/icons.js';
 
 export const Widget = GObject.registerClass(
@@ -146,12 +146,12 @@ class SystemWidget extends BaseWidget {
             x_expand: true,
             x_align: Clutter.ActorAlign.FILL,
         });
-        const caption = new St.Label({
+        const caption = configureWidgetCaption(new St.Label({
             text: _('System').toUpperCase(),
             style_class: 'widget-caption',
             x_expand: true,
             x_align: Clutter.ActorAlign.START,
-        });
+        }));
         const sideLabel = new St.Label({
             text: `${_('Load')} ${load1}`,
             style_class: 'widget-header-side',
@@ -184,7 +184,7 @@ class SystemWidget extends BaseWidget {
             });
             const cpuValue = new St.Label({
                 text: `${cpuPercent}%`,
-                style_class: 'widget-common-value',
+                style_class: 'widget-common-value widget-system-cpu-percent',
             });
             const cpuGauge = this._createGauge('widget-gauge-blue');
             this._setGauge(cpuGauge, cpuFraction, 'widget-gauge-blue');
@@ -284,8 +284,8 @@ class SystemWidget extends BaseWidget {
                 style_class: 'widget-split-col',
                 x_expand: true,
             });
-            const cpuHeader = new St.Label({ text: _('CPU & Processor').toUpperCase(), style_class: 'widget-caption' });
-            const cpuValue = new St.Label({ text: `${cpuPercent}%`, style_class: 'widget-common-value' });
+            const cpuHeader = configureWidgetCaption(new St.Label({ text: _('CPU & Processor').toUpperCase(), style_class: 'widget-caption' }));
+            const cpuValue = new St.Label({ text: `${cpuPercent}%`, style_class: 'widget-common-value widget-system-cpu-percent' });
             const cpuGauge = this._createGauge('widget-gauge-blue');
             this._setGauge(cpuGauge, cpuFraction, 'widget-gauge-blue');
             const loadBadge = new St.Label({ text: `${_('Averages')}: ${load1} · ${load5} · ${load15}`, style_class: 'widget-gauge-value' });
@@ -302,7 +302,7 @@ class SystemWidget extends BaseWidget {
                 style_class: 'widget-split-col',
                 x_expand: true,
             });
-            const memHeader = new St.Label({ text: _('Memory & Storage').toUpperCase(), style_class: 'widget-caption' });
+            const memHeader = configureWidgetCaption(new St.Label({ text: _('Memory & Storage').toUpperCase(), style_class: 'widget-caption' }));
             const memValue = new St.Label({ text: `${(usedMiB / 1024).toFixed(1)} GB`, style_class: 'widget-common-value' });
             const memGauge = this._createGauge(memoryColor);
             this._setGauge(memGauge, memoryFraction, memoryColor);
@@ -338,7 +338,7 @@ class SystemWidget extends BaseWidget {
         } else {
             const loadLabel = new St.Label({
                 text: `${cpuPercent}%`,
-                style_class: 'widget-common-value',
+                style_class: 'widget-common-value widget-system-cpu-percent',
                 x_align: Clutter.ActorAlign.START,
             });
             const cpuCaption = new St.Label({

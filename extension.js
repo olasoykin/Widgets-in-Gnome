@@ -1,8 +1,12 @@
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+import Meta from 'gi://Meta';
+import St from 'gi://St';
+import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { Grid } from './core/grid.js';
 import { DesktopItem, dismissActiveContextMenuAt } from './core/desktopItem.js';
 import { GridOverlay } from './ui/gridOverlay.js';
@@ -16,6 +20,13 @@ export default class WidgetsExtension extends Extension {
         this._widgets = [];
         this._pluginWidgets = [];
         this._desktopItems = [];
+        this._widgetCatalog = [];
+        this._desktopMenu = null;
+        this._desktopMenuAnchor = null;
+        this._widgetManagerDialog = null;
+        this._widgetManagerScroll = null;
+        this._widgetManagerPreviewWidgets = [];
+        this._widgetsLoaded = false;
         this._widgetLoadGeneration = 0;
         this._desktopPositions = this._loadDesktopPositions();
         this._widgetPositions = this._loadWidgetPositions();
@@ -38,10 +49,20 @@ export default class WidgetsExtension extends Extension {
 
         this._container = new Clutter.Actor({
             layout_manager: new Clutter.FixedLayout(),
+            // Let right-clicks on the empty desktop reach our background menu.
+            // Widgets and desktop items remain independently reactive as children.
             reactive: true,
         });
+        const [stageWidth, stageHeight] = global.stage.get_size();
+        this._container.set_size(stageWidth, stageHeight);
 
         this._container.connect('button-press-event', (actor, event) => {
+            if (event.get_button() === 3) {
+                const [x, y] = event.get_coords();
+                dismissActiveContextMenuAt(x, y, 3);
+                this._showDesktopMenu(x, y);
+                return Clutter.EVENT_STOP;
+            }
             if (event.get_button() === 1) {
                 const [x, y] = event.get_coords();
                 for (const widget of this._widgets) {
@@ -77,7 +98,31 @@ export default class WidgetsExtension extends Extension {
             if (button !== 1 && button !== 3) return Clutter.EVENT_PROPAGATE;
 
             const [x, y] = event.get_coords();
-            dismissActiveContextMenuAt(x, y);
+            let dismissedOpenMenu = false;
+            const openMenuActor = this._desktopMenu?.actor;
+            if (openMenuActor?.visible) {
+                const [menuX, menuY] = openMenuActor.get_transformed_position();
+                const [menuWidth, menuHeight] = openMenuActor.get_transformed_size();
+                const insideMenu = x >= menuX && x <= menuX + menuWidth &&
+                    y >= menuY && y <= menuY + menuHeight;
+                if (insideMenu) return Clutter.EVENT_PROPAGATE;
+
+                this._destroyDesktopMenu();
+                dismissedOpenMenu = true;
+            }
+
+            if (dismissedOpenMenu && button === 3) {
+                dismissActiveContextMenuAt(x, y, button);
+                return Clutter.EVENT_STOP;
+            }
+
+            if (button === 3 && this._isDesktopBackgroundClick(x, y)) {
+                dismissActiveContextMenuAt(x, y, button);
+                this._showDesktopMenu(x, y);
+                return Clutter.EVENT_STOP;
+            }
+
+            dismissActiveContextMenuAt(x, y, button);
 
             for (const widget of this._widgets) {
                 if (!widget.isEditMode) continue;
@@ -102,6 +147,351 @@ export default class WidgetsExtension extends Extension {
         const path = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP) ??
             GLib.build_filenamev([GLib.get_home_dir(), 'Desktop']);
         return Gio.File.new_for_path(path);
+    }
+
+    _isDesktopBackgroundClick(x, y) {
+        const onMonitor = Main.layoutManager.monitors.some(monitor =>
+            x >= monitor.x && y >= monitor.y &&
+            x < monitor.x + monitor.width && y < monitor.y + monitor.height
+        );
+        if (!onMonitor) return false;
+
+        const target = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, x, y);
+        for (let actor = target; actor; actor = actor.get_parent()) {
+            if (this._widgets.includes(actor) ||
+                actor === Main.panel?.actor ||
+                actor === this._desktopMenu?.actor ||
+                actor === Main.uiGroup) return false;
+
+            if (typeof actor.get_meta_window === 'function') {
+                const window = actor.get_meta_window();
+                if (window && window.get_window_type() !== Meta.WindowType.DESKTOP) return false;
+            }
+        }
+        return true;
+    }
+
+    _showDesktopMenu(x, y) {
+        this._destroyDesktopMenu();
+
+        // PopupMenu positions itself relative to its source actor when opened.
+        // Use a 1px invisible actor at the pointer instead of the full-screen
+        // desktop container, otherwise the requested click position is ignored.
+        const anchor = new Clutter.Actor({ reactive: false, width: 1, height: 1 });
+        anchor.set_opacity(0);
+        Main.uiGroup.add_child(anchor);
+        anchor.set_position(x, y);
+        this._desktopMenuAnchor = anchor;
+
+        const menu = new PopupMenu.PopupMenu(anchor, 0.5, St.Side.TOP, 0);
+        this._desktopMenu = menu;
+        Main.uiGroup.add_child(menu.actor);
+        menu.actor.hide();
+
+        menu.addAction(_('Change Background…'), () => this._launchControlCenter('background'));
+        menu.addAction(_('Display Settings'), () => this._launchControlCenter('display'));
+        menu.addAction(_('New Folder'), () => this._createDesktopFolder());
+        menu.addAction(_('Open Desktop Folder'), () => {
+            Gio.AppInfo.launch_default_for_uri(this._getDesktopDirectory().get_uri(), null);
+        });
+        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        menu.addAction(_('Manage Widgets…'), () => this._openWidgetManager());
+        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        menu.addAction(_('Desktop Settings'), () => this.openPreferences());
+
+        menu.connect('menu-closed', () => {
+            if (this._desktopMenu === menu) {
+                this._destroyDesktopMenu();
+            }
+        });
+        menu.open();
+    }
+
+    _createDesktopFolder() {
+        const directory = this._getDesktopDirectory();
+        for (let index = 1; index < 1000; index++) {
+            const name = index === 1 ? _('New Folder') : _('New Folder (%d)').replace('%d', String(index));
+            const folder = directory.get_child(name);
+            if (folder.query_exists(null)) continue;
+            try {
+                folder.make_directory(null);
+            } catch (error) {
+                console.error(`[Widgets] Could not create desktop folder: ${error.message}`);
+            }
+            return;
+        }
+    }
+
+    _launchControlCenter(panel) {
+        try {
+            Gio.Subprocess.new(['gnome-control-center', panel], Gio.SubprocessFlags.NONE);
+        } catch (error) {
+            console.error(`[Widgets] Could not open ${panel} settings: ${error.message}`);
+        }
+    }
+
+    _openWidgetManager() {
+        if (this._widgetManagerDialog) return;
+
+        const dialog = new ModalDialog.ModalDialog({
+            styleClass: 'desktop-widget-manager-dialog',
+        });
+        this._widgetManagerDialog = dialog;
+
+        const content = new St.BoxLayout({
+            orientation: Clutter.Orientation.VERTICAL,
+            style_class: 'desktop-widget-manager-content',
+            x_expand: true,
+        });
+        const heading = new St.Label({
+            text: _('Desktop widgets'),
+            style_class: 'desktop-widget-manager-heading',
+            x_align: Clutter.ActorAlign.START,
+        });
+        const description = new St.Label({
+            text: _('Preview your widgets and choose which ones appear on the desktop.'),
+            style_class: 'desktop-widget-manager-description',
+            x_align: Clutter.ActorAlign.START,
+            x_expand: true,
+        });
+        const headingBox = new St.BoxLayout({
+            orientation: Clutter.Orientation.VERTICAL,
+            style_class: 'desktop-widget-manager-header',
+            x_expand: true,
+        });
+        headingBox.add_child(heading);
+        headingBox.add_child(description);
+        content.add_child(headingBox);
+
+        this._widgetManagerScroll = new St.ScrollView({
+            style_class: 'desktop-widget-manager-scroll',
+            overlay_scrollbars: true,
+            x_expand: true,
+            y_expand: true,
+        });
+        this._widgetManagerScroll.set_policy(St.PolicyType.NEVER, St.PolicyType.AUTOMATIC);
+        content.add_child(this._widgetManagerScroll);
+        dialog.contentLayout.add_child(content);
+        dialog.setButtons([{
+            label: _('Close'),
+            action: () => dialog.close(),
+            key: Clutter.KEY_Escape,
+            default: true,
+            cancel: true,
+        }]);
+        dialog.connect('closed', () => {
+            if (this._widgetManagerDialog !== dialog) return;
+            this._widgetManagerDialog = null;
+            this._widgetManagerScroll = null;
+            this._destroyWidgetManagerPreviews();
+            dialog.destroy();
+        });
+
+        this._renderWidgetManager();
+        dialog.open();
+    }
+
+    _closeWidgetManager() {
+        const dialog = this._widgetManagerDialog;
+        this._widgetManagerDialog = null;
+        this._widgetManagerScroll = null;
+        this._destroyWidgetManagerPreviews();
+        if (dialog) {
+            dialog.close();
+            dialog.destroy();
+        }
+    }
+
+    _renderWidgetManager() {
+        if (!this._widgetManagerScroll) return;
+        this._destroyWidgetManagerPreviews();
+
+        if (this._widgetCatalog.length === 0) {
+            const message = new St.Label({
+                text: this._widgetsLoaded ? _('No widgets are available.') : _('Loading widgets…'),
+                style_class: 'desktop-widget-manager-empty',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: true,
+                y_expand: true,
+            });
+            this._widgetManagerScroll.set_child(message);
+            return;
+        }
+
+        const grid = new St.BoxLayout({
+            orientation: Clutter.Orientation.VERTICAL,
+            style_class: 'desktop-widget-manager-grid',
+            x_expand: true,
+        });
+        for (let index = 0; index < this._widgetCatalog.length; index += 2) {
+            const row = new St.BoxLayout({
+                style_class: 'desktop-widget-manager-row',
+                x_expand: true,
+            });
+            for (const entry of this._widgetCatalog.slice(index, index + 2)) {
+                row.add_child(this._createWidgetManagerCard(entry));
+            }
+            if (this._widgetCatalog.length % 2 !== 0 && index + 2 >= this._widgetCatalog.length) {
+                row.add_child(new St.Widget({ style_class: 'desktop-widget-manager-spacer', x_expand: true }));
+            }
+            grid.add_child(row);
+        }
+        this._widgetManagerScroll.set_child(grid);
+    }
+
+    _createWidgetManagerCard(entry) {
+        const card = new St.BoxLayout({
+            orientation: Clutter.Orientation.VERTICAL,
+            style_class: 'desktop-widget-manager-card',
+            x_expand: true,
+        });
+        const previewWidth = 300;
+        const previewHeight = 190;
+        const preview = new St.Widget({
+            layout_manager: new Clutter.FixedLayout(),
+            style_class: 'desktop-widget-manager-preview',
+            width: previewWidth,
+            height: previewHeight,
+            reactive: false,
+        });
+        preview.set_clip(0, 0, previewWidth, previewHeight);
+
+        try {
+            const config = entry.config;
+            const colSpan = config.colSpan ?? 2;
+            const rowSpan = config.rowSpan ?? 2;
+            const previewCellSize = 100;
+            const grid = {
+                columns: colSpan,
+                rows: rowSpan,
+                startX: 0,
+                startY: 0,
+                gapX: 0,
+                gapY: 0,
+                cellWidth: previewCellSize,
+                cellHeight: previewCellSize,
+                isValidCell: (col, row, width, height) =>
+                    col >= 0 && row >= 0 && col + width <= colSpan && row + height <= rowSpan,
+                getCellRect: (col, row, width, height) => ({
+                    x: col * previewCellSize,
+                    y: row * previewCellSize,
+                    width: width * previewCellSize,
+                    height: height * previewCellSize,
+                }),
+            };
+            const previewWidget = new entry.Widget({
+                ...config,
+                grid,
+                col: 0,
+                row: 0,
+                colSpan,
+                rowSpan,
+                resizable: false,
+            });
+            this._widgetManagerPreviewWidgets.push(previewWidget);
+            const previewScale = Math.min(
+                previewWidth / (colSpan * previewCellSize),
+                previewHeight / (rowSpan * previewCellSize)
+            );
+            const previewX = (previewWidth - colSpan * previewCellSize * previewScale) / 2;
+            const previewY = (previewHeight - rowSpan * previewCellSize * previewScale) / 2;
+            previewWidget.connect('notify::mapped', () => {
+                if (!previewWidget.mapped) return;
+                previewWidget.set_pivot_point(0, 0);
+                previewWidget.set_scale(previewScale, previewScale);
+                previewWidget.set_position(previewX, previewY);
+            });
+            previewWidget.setBlurEnabled(false);
+            this._setPreviewReactive(previewWidget, false);
+            preview.add_child(previewWidget);
+        } catch (error) {
+            console.warn(`[Widgets] Could not preview ${entry.filename}: ${error.message}`);
+            preview.add_child(new St.Label({
+                text: _('Preview unavailable'),
+                style_class: 'desktop-widget-manager-preview-empty',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: true,
+                y_expand: true,
+            }));
+        }
+        card.add_child(preview);
+
+        const footer = new St.BoxLayout({
+            style_class: 'desktop-widget-manager-footer',
+            x_expand: true,
+        });
+        const title = new St.Label({
+            text: entry.name,
+            style_class: 'desktop-widget-manager-title',
+            x_align: Clutter.ActorAlign.START,
+            x_expand: true,
+        });
+        footer.add_child(title);
+
+        let enabled = !new Set(this._settings.get_strv('disabled-widgets')).has(entry.filename);
+        const toggle = new St.Button({
+            style_class: 'desktop-widget-manager-switch-button',
+            can_focus: true,
+            reactive: true,
+        });
+        const track = new St.Widget({
+            layout_manager: new Clutter.FixedLayout(),
+            style_class: `desktop-widget-manager-switch-track${enabled ? ' desktop-widget-manager-switch-active' : ''}`,
+            width: 44,
+            height: 26,
+            reactive: false,
+        });
+        const thumb = new St.Widget({
+            style_class: 'desktop-widget-manager-switch-thumb',
+            x: enabled ? 20 : 2,
+            y: 2,
+            width: 22,
+            height: 22,
+            reactive: false,
+        });
+        track.add_child(thumb);
+        toggle.set_child(track);
+        toggle.connect('clicked', () => {
+            enabled = !enabled;
+            if (enabled) track.add_style_class_name('desktop-widget-manager-switch-active');
+            else track.remove_style_class_name('desktop-widget-manager-switch-active');
+            thumb.set_position(enabled ? 20 : 2, 2);
+
+            const updated = new Set(this._settings.get_strv('disabled-widgets'));
+            if (enabled) updated.delete(entry.filename);
+            else updated.add(entry.filename);
+            this._settings.set_strv('disabled-widgets', [...updated].sort());
+        });
+        footer.add_child(toggle);
+
+        card.add_child(footer);
+        return card;
+    }
+
+    _setPreviewReactive(actor, reactive) {
+        actor.reactive = reactive;
+        for (const child of actor.get_children()) {
+            this._setPreviewReactive(child, reactive);
+        }
+    }
+
+    _destroyWidgetManagerPreviews() {
+        for (const widget of this._widgetManagerPreviewWidgets) {
+            widget.destroy();
+        }
+        this._widgetManagerPreviewWidgets = [];
+    }
+
+    _destroyDesktopMenu() {
+        if (!this._desktopMenu && !this._desktopMenuAnchor) return;
+        const menu = this._desktopMenu;
+        const anchor = this._desktopMenuAnchor;
+        this._desktopMenu = null;
+        this._desktopMenuAnchor = null;
+        menu?.destroy();
+        anchor?.destroy();
     }
 
     _getDesktopPositionsPath() {
@@ -278,10 +668,10 @@ export default class WidgetsExtension extends Extension {
         enumerator.close(null);
         filenames.sort();
         const disabledWidgets = new Set(this._settings.get_strv('disabled-widgets'));
+        this._widgetCatalog = [];
 
         for (const filename of filenames) {
             if (!this._container || generation !== this._widgetLoadGeneration) return;
-            if (disabledWidgets.has(filename)) continue;
 
             try {
                 const uri = widgetsDirectory.get_child(filename).get_uri();
@@ -292,43 +682,78 @@ export default class WidgetsExtension extends Extension {
                     continue;
                 }
 
-                const config = module.WIDGET_CONFIG ?? {};
-                const saved = this._widgetPositions[filename];
-                const colSpan = saved?.colSpan ?? config.colSpan ?? 2;
-                const rowSpan = saved?.rowSpan ?? config.rowSpan ?? 2;
-                const preferredCol = saved?.col ?? config.col;
-                const preferredRow = saved?.row ?? config.row;
-                const position = this._findWidgetPosition(
-                    colSpan,
-                    rowSpan,
-                    preferredCol,
-                    preferredRow
-                );
-                if (!position) {
-                    console.warn(`[Widgets] No hay espacio disponible para ${filename}`);
-                    continue;
-                }
-                const params = {
-                    ...config,
-                    grid: this._grid,
-                    col: position.col,
-                    row: position.row,
-                    colSpan,
-                    rowSpan,
+                const entry = {
+                    filename,
+                    name: module.WIDGET_NAME ?? filename.replace(/\.js$/, ''),
+                    Widget: module.Widget,
+                    config: module.WIDGET_CONFIG ?? {},
                 };
-
-                const widget = new module.Widget(params);
-                widget.widgetId = filename;
-                widget.connect('geometry-changed', () => this._saveWidgetPositions());
-                this._widgets.push(widget);
-                this._pluginWidgets.push(widget);
-                this._container.add_child(widget);
-                widget.setBlurEnabled(this._settings.get_boolean('enable-blur'));
+                this._widgetCatalog.push(entry);
+                if (disabledWidgets.has(filename)) continue;
+                this._addWidgetFromCatalog(entry);
             } catch (error) {
                 console.error(`[Widgets] No se pudo cargar ${filename}: ${error.message}\n${error.stack ?? ''}`);
             }
         }
         this._widgetsLoaded = true;
+        this._saveWidgetPositions();
+        this._renderWidgetManager();
+    }
+
+    _addWidgetFromCatalog(entry) {
+        if (this._pluginWidgets.some(widget => widget.widgetId === entry.filename)) return;
+
+        const config = entry.config;
+        const saved = this._widgetPositions[entry.filename];
+        const colSpan = saved?.colSpan ?? config.colSpan ?? 2;
+        const rowSpan = saved?.rowSpan ?? config.rowSpan ?? 2;
+        const position = this._findWidgetPosition(
+            colSpan,
+            rowSpan,
+            saved?.col ?? config.col,
+            saved?.row ?? config.row
+        );
+        if (!position) {
+            console.warn(`[Widgets] No hay espacio disponible para ${entry.filename}`);
+            return;
+        }
+
+        try {
+            const widget = new entry.Widget({
+                ...config,
+                grid: this._grid,
+                col: position.col,
+                row: position.row,
+                colSpan,
+                rowSpan,
+            });
+            widget.widgetId = entry.filename;
+            widget.connect('geometry-changed', () => this._saveWidgetPositions());
+            this._widgets.push(widget);
+            this._pluginWidgets.push(widget);
+            this._container.add_child(widget);
+            widget.setBlurEnabled(this._settings.get_boolean('enable-blur'));
+            widget.setStaticBlurEnabled(this._settings.get_boolean('static-blur'));
+        } catch (error) {
+            console.error(`[Widgets] No se pudo cargar ${entry.filename}: ${error.message}\n${error.stack ?? ''}`);
+        }
+    }
+
+    _syncWidgetsWithSettings() {
+        const disabled = new Set(this._settings.get_strv('disabled-widgets'));
+        const removed = this._pluginWidgets.filter(widget => disabled.has(widget.widgetId));
+        for (const widget of removed) {
+            widget.destroy();
+        }
+        if (removed.length > 0) {
+            const removedSet = new Set(removed);
+            this._pluginWidgets = this._pluginWidgets.filter(widget => !removedSet.has(widget));
+            this._widgets = this._widgets.filter(widget => !removedSet.has(widget));
+        }
+
+        for (const entry of this._widgetCatalog) {
+            if (!disabled.has(entry.filename)) this._addWidgetFromCatalog(entry);
+        }
         this._saveWidgetPositions();
     }
 
@@ -409,13 +834,24 @@ export default class WidgetsExtension extends Extension {
         });
         this._settingsSignals.push(blurId);
 
+        const staticBlurId = this._settings.connect('changed::static-blur', () => {
+            const globalStaticBlur = this._settings.get_boolean('static-blur');
+            for (const widget of this._pluginWidgets) {
+                widget.setStaticBlurEnabled(globalStaticBlur);
+            }
+        });
+        this._settingsSignals.push(staticBlurId);
+
         const widgetsId = this._settings.connect('changed::disabled-widgets', () => {
-            this._reloadWidgets();
+            if (this._widgetsLoaded) this._syncWidgetsWithSettings();
+            else this._reloadWidgets();
         });
         this._settingsSignals.push(widgetsId);
 
+        const globalStaticBlur = this._settings.get_boolean('static-blur');
         for (const widget of this._pluginWidgets) {
             widget.setBlurEnabled(this._settings.get_boolean('enable-blur'));
+            widget.setStaticBlurEnabled(globalStaticBlur);
         }
     }
 
@@ -447,6 +883,8 @@ export default class WidgetsExtension extends Extension {
 
     disable() {
         this._widgetLoadGeneration++;
+        this._destroyDesktopMenu();
+        this._closeWidgetManager();
         if (this._stageEventId) {
             global.stage.disconnect(this._stageEventId);
             this._stageEventId = 0;

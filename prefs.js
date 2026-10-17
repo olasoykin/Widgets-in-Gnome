@@ -79,11 +79,18 @@ export default class WidgetsPreferences extends ExtensionPreferences {
         page.add(effectsGroup);
 
         const blurRow = new Adw.SwitchRow({
-            title: _('Background blur'),
-            subtitle: _('Apply acrylic blur using Blur my Shell or native GNOME Shell.'),
+            title: _('Dynamic background blur'),
+            subtitle: _('Apply live acrylic blur using Blur my Shell or native GNOME Shell.'),
         });
         settings.bind('enable-blur', blurRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         effectsGroup.add(blurRow);
+
+        const staticBlurRow = new Adw.SwitchRow({
+            title: _('Static blur for all widgets'),
+            subtitle: _('Use Blur my Shell’s static wallpaper blur instead of live blur.'),
+        });
+        settings.bind('static-blur', staticBlurRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        effectsGroup.add(staticBlurRow);
     }
 
     async _populateWidgetList(group, settings) {

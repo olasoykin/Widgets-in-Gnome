@@ -6,59 +6,50 @@ import PangoCairo from 'gi://PangoCairo';
 const TAU = Math.PI * 2;
 const NUMERAL_ANGLES = [
     { text: '12', angle: -Math.PI / 2 },
+    { text: '1', angle: -Math.PI / 3 },
+    { text: '2', angle: -Math.PI / 6 },
     { text: '3', angle: 0 },
+    { text: '4', angle: Math.PI / 6 },
+    { text: '5', angle: Math.PI / 3 },
     { text: '6', angle: Math.PI / 2 },
+    { text: '7', angle: 2 * Math.PI / 3 },
+    { text: '8', angle: 5 * Math.PI / 6 },
     { text: '9', angle: Math.PI },
+    { text: '10', angle: 7 * Math.PI / 6 },
+    { text: '11', angle: 4 * Math.PI / 3 },
 ];
-
-const PREFERRED_FONTS = ['SF Pro Display', 'SF Pro Text', 'Inter', 'Cantarell', 'DejaVu Sans'];
-let cachedFontFamily = null;
+const CLOCK_FONT = 'Cantarell';
 
 const DARK_PALETTE = {
-    dialInner: [0.17, 0.17, 0.19, 1],
-    dialOuter: [0.04, 0.04, 0.05, 1],
-    bezel: [1, 1, 1, 0.16],
-    hourTick: [1, 1, 1, 0.95],
-    minuteTick: [1, 1, 1, 0.32],
-    numeral: [1, 1, 1, 0.92],
-    hand: [1, 1, 1, 1],
-    handShadow: [0, 0, 0, 0.55],
-    accent: [1, 0.58, 0.04, 1],
+    dialInner: [0.88, 0.89, 0.92, 0.78],
+    dialOuter: [0.68, 0.71, 0.76, 0.70],
+    bezel: [1, 1, 1, 0.30],
+    hourTick: [0.12, 0.14, 0.18, 0.72],
+    minuteTick: [0.12, 0.14, 0.18, 0.36],
+    numeral: [0.08, 0.10, 0.14, 0.96],
+    hand: [0.08, 0.10, 0.14, 1],
+    handShadow: [0, 0, 0, 0.18],
+    accent: [0.21, 0.52, 0.89, 1],
+    center: [1, 1, 1, 0.82],
+    centerAccent: [0.21, 0.52, 0.89, 0.92],
 };
 
 const LIGHT_PALETTE = {
-    dialInner: [1, 1, 1, 1],
-    dialOuter: [0.93, 0.93, 0.94, 1],
-    bezel: [0, 0, 0, 0.14],
-    hourTick: [0.07, 0.07, 0.08, 0.92],
-    minuteTick: [0, 0, 0, 0.26],
-    numeral: [0.07, 0.07, 0.08, 0.92],
+    dialInner: [1, 1, 1, 0.82],
+    dialOuter: [0.88, 0.90, 0.93, 0.72],
+    bezel: [0, 0, 0, 0.16],
+    hourTick: [0.10, 0.12, 0.16, 0.72],
+    minuteTick: [0.10, 0.12, 0.16, 0.34],
+    numeral: [0.08, 0.10, 0.14, 0.96],
     hand: [0.09, 0.09, 0.10, 1],
-    handShadow: [0, 0, 0, 0.24],
-    accent: [1, 0.42, 0, 1],
+    handShadow: [0, 0, 0, 0.16],
+    accent: [0.21, 0.52, 0.89, 1],
+    center: [1, 1, 1, 0.86],
+    centerAccent: [0.21, 0.52, 0.89, 0.92],
 };
 
 export function getAnalogClockPalette(isDark = true) {
     return isDark ? DARK_PALETTE : LIGHT_PALETTE;
-}
-
-function _pickFontFamily() {
-    if (cachedFontFamily) return cachedFontFamily;
-    try {
-        const fontMap = PangoCairo.font_map_get_default();
-        const available = fontMap.list_families().map(family => family.get_name());
-        cachedFontFamily = PREFERRED_FONTS.find(name => available.includes(name)) ?? 'Cantarell';
-    } catch (_error) {
-        cachedFontFamily = 'Cantarell';
-    }
-    return cachedFontFamily;
-}
-
-function _showLayout(context, layout) {
-    if (typeof PangoCairo.show_layout === 'function')
-        PangoCairo.show_layout(context, layout);
-    else if (typeof Pango.cairo_show_layout === 'function')
-        Pango.cairo_show_layout(context, layout);
 }
 
 function _drawDial(context, centerX, centerY, radius, palette) {
@@ -80,55 +71,55 @@ function _drawDial(context, centerX, centerY, radius, palette) {
 }
 
 function _drawTicks(context, centerX, centerY, radius, palette) {
-    const outer = radius * 0.90;
+    const outer = radius * 0.94;
     context.setLineCap(Cairo.LineCap.ROUND);
 
     context.newPath();
     for (let tick = 0; tick < 60; tick++) {
         if (tick % 5 === 0) continue;
         const angle = tick * TAU / 60 - Math.PI / 2;
-        const inner = outer - radius * 0.05;
+        const inner = outer - radius * 0.035;
         context.moveTo(centerX + Math.cos(angle) * inner, centerY + Math.sin(angle) * inner);
         context.lineTo(centerX + Math.cos(angle) * outer, centerY + Math.sin(angle) * outer);
     }
-    context.setLineWidth(Math.max(1, radius * 0.013));
+    context.setLineWidth(Math.max(1, radius * 0.009));
     context.setSourceRGBA(...palette.minuteTick);
     context.stroke();
 
     context.newPath();
     for (let tick = 0; tick < 12; tick++) {
         const angle = tick * TAU / 12 - Math.PI / 2;
-        const inner = outer - radius * 0.115;
+        const inner = outer - radius * 0.075;
         context.moveTo(centerX + Math.cos(angle) * inner, centerY + Math.sin(angle) * inner);
         context.lineTo(centerX + Math.cos(angle) * outer, centerY + Math.sin(angle) * outer);
     }
-    context.setLineWidth(Math.max(2, radius * 0.034));
+    context.setLineWidth(Math.max(1.5, radius * 0.018));
     context.setSourceRGBA(...palette.hourTick);
     context.stroke();
     context.newPath();
 }
 
 function _drawNumerals(context, centerX, centerY, radius, palette, scale) {
-    const fontSize = Math.round(radius * 0.30 * scale);
-    if (fontSize < 8) return;
+    const fontSize = Math.round(radius * 0.19 * scale);
+    if (fontSize < 7) return;
 
-    const distance = radius * 0.62;
+    const distance = radius * 0.77;
     for (const { text, angle } of NUMERAL_ANGLES) {
         const layout = PangoCairo.create_layout(context);
-        const description = Pango.FontDescription.from_string(`${_pickFontFamily()} ${fontSize}`);
-        description.set_weight(Pango.Weight.SEMIBOLD);
-        description.set_size(Math.round(fontSize * 0.75 * Pango.SCALE));
+        const description = Pango.FontDescription.from_string(`${CLOCK_FONT} ${fontSize}`);
+        description.set_weight(Pango.Weight.MEDIUM);
         layout.set_font_description(description);
         layout.set_text(text, -1);
 
         const [textWidth, textHeight] = layout.get_pixel_size();
         const x = centerX + Math.cos(angle) * distance - textWidth / 2;
         const y = centerY + Math.sin(angle) * distance - textHeight / 2;
-
-        context.newPath();
         context.moveTo(x, y);
         context.setSourceRGBA(...palette.numeral);
-        _showLayout(context, layout);
+        if (typeof PangoCairo.show_layout === 'function')
+            PangoCairo.show_layout(context, layout);
+        else if (typeof Pango.cairo_show_layout === 'function')
+            Pango.cairo_show_layout(context, layout);
     }
     context.newPath();
 }
@@ -174,10 +165,10 @@ function _drawHands(context, centerX, centerY, radius, palette, hours, minutes, 
 
     context.newPath();
     context.arc(centerX, centerY, Math.max(3, radius * 0.055), 0, TAU);
-    context.setSourceRGBA(...palette.hand);
+    context.setSourceRGBA(...palette.center);
     context.fill();
     context.arc(centerX, centerY, Math.max(1.5, radius * 0.026), 0, TAU);
-    context.setSourceRGBA(...palette.accent);
+    context.setSourceRGBA(...palette.centerAccent);
     context.fill();
     context.newPath();
 }
@@ -198,7 +189,7 @@ export function drawAnalogClockFace(context, width, height, options = {}) {
     } = options;
 
     const size = Math.min(width, height);
-    const radius = size / 2 - Math.max(4, size * 0.02);
+    const radius = size / 2 - Math.max(2, size * 0.01);
     if (radius <= 0) return;
 
     const palette = getAnalogClockPalette(isDark);
@@ -211,8 +202,7 @@ export function drawAnalogClockFace(context, width, height, options = {}) {
 
     _drawDial(context, centerX, centerY, radius, palette);
     _drawTicks(context, centerX, centerY, radius, palette);
-    if (radius >= 45)
-        _drawNumerals(context, centerX, centerY, radius, palette, scale);
+    _drawNumerals(context, centerX, centerY, radius, palette, scale);
     _drawHands(context, centerX, centerY, radius, palette, hours, minutes, seconds);
 }
 

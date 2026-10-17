@@ -51,6 +51,11 @@
       <summary>Enable blur effect</summary>
       <description>Enable acrylic frosted glass blur effect on widgets using Blur my Shell or GNOME native blur.</description>
     </key>
+    <key name="static-blur" type="b">
+      <default>false</default>
+      <summary>Use static blur on all widgets</summary>
+      <description>Use Blur my Shell's static wallpaper blur instead of dynamic blur for all widgets.</description>
+    </key>
     <key name="disabled-widgets" type="as">
       <default>[]</default>
       <summary>Disabled desktop widgets</summary>

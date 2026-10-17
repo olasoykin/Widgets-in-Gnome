@@ -6,15 +6,15 @@ import Soup from 'gi://Soup';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { BaseWidget } from '../core/baseWidget.js';
-import { createIcon, getWidgetIcon } from '../core/icons.js';
+import { createIcon } from '../core/icons.js';
 
 const WEATHER_CONDITIONS = {
     0: { text: _('Clear'), icon: 'sun' },
     1: { text: _('Mostly clear'), icon: 'sun' },
-    2: { text: _('Partly cloudy'), icon: 'cloud' },
+    2: { text: _('Partly cloudy'), icon: 'cloud-sun' },
     3: { text: _('Cloudy'), icon: 'cloud' },
-    45: { text: _('Fog'), icon: 'mist' },
-    48: { text: _('Rime fog'), icon: 'mist' },
+    45: { text: _('Fog'), icon: 'fog' },
+    48: { text: _('Rime fog'), icon: 'fog' },
     51: { text: _('Light drizzle'), icon: 'cloud-rain' },
     53: { text: _('Drizzle'), icon: 'cloud-rain' },
     55: { text: _('Heavy drizzle'), icon: 'cloud-rain' },
@@ -25,19 +25,27 @@ const WEATHER_CONDITIONS = {
     65: { text: _('Heavy rain'), icon: 'cloud-rain' },
     66: { text: _('Freezing rain'), icon: 'cloud-rain' },
     67: { text: _('Freezing rain'), icon: 'cloud-rain' },
-    71: { text: _('Light snow'), icon: 'cloud-snow' },
-    73: { text: _('Snow'), icon: 'cloud-snow' },
-    75: { text: _('Heavy snow'), icon: 'cloud-snow' },
-    77: { text: _('Snow grains'), icon: 'cloud-snow' },
+    71: { text: _('Light snow'), icon: 'snow' },
+    73: { text: _('Snow'), icon: 'snow' },
+    75: { text: _('Heavy snow'), icon: 'snow' },
+    77: { text: _('Snow grains'), icon: 'snow' },
     80: { text: _('Light showers'), icon: 'cloud-rain' },
     81: { text: _('Showers'), icon: 'cloud-rain' },
     82: { text: _('Heavy showers'), icon: 'cloud-rain' },
-    85: { text: _('Snow showers'), icon: 'cloud-snow' },
-    86: { text: _('Snow showers'), icon: 'cloud-snow' },
-    95: { text: _('Thunderstorm'), icon: 'cloud-storm' },
-    96: { text: _('Thunderstorm with hail'), icon: 'cloud-storm' },
-    99: { text: _('Heavy thunderstorm'), icon: 'cloud-storm' },
+    85: { text: _('Snow showers'), icon: 'snow' },
+    86: { text: _('Snow showers'), icon: 'snow' },
+    95: { text: _('Thunderstorm'), icon: 'storm' },
+    96: { text: _('Thunderstorm with hail'), icon: 'storm' },
+    99: { text: _('Heavy thunderstorm'), icon: 'storm' },
 };
+
+function _getWeatherIconName(icon, isDay = 1) {
+    if (isDay === 0) {
+        if (icon === 'sun') return 'moon';
+        if (icon === 'cloud-sun') return 'cloud-moon';
+    }
+    return icon;
+}
 
 const LOCATION_CACHE_MAX_AGE_SECONDS = 24 * 60 * 60;
 const WEATHER_REFRESH_SECONDS = 30 * 60;
@@ -186,8 +194,8 @@ class WeatherWidget extends BaseWidget {
             `&longitude=${this._location.longitude}` +
             '&current=temperature_2m,relative_humidity_2m,apparent_temperature,' +
             'is_day,weather_code,wind_speed_10m' +
-            '&hourly=temperature_2m,weather_code,is_day' +
-            '&daily=temperature_2m_max,temperature_2m_min,weather_code' +
+            '&hourly=temperature_2m,weather_code,is_day,precipitation_probability' +
+            '&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max' +
             '&timezone=auto&forecast_days=5';
 
         const message = Soup.Message.new('GET', url);
@@ -292,10 +300,10 @@ class WeatherWidget extends BaseWidget {
             const isDay = hourly.is_day ? hourly.is_day[idx] : 1;
             const code = hourly.weather_code ? hourly.weather_code[idx] : 0;
             const tempVal = Math.round(hourly.temperature_2m[idx]);
+            const precipitation = hourly.precipitation_probability?.[idx] ?? 0;
             const cond = WEATHER_CONDITIONS[code] ?? { icon: 'cloud' };
 
-            let iconName = cond.icon;
-            if (isDay === 0 && iconName === 'sun') iconName = 'cloud';
+            const iconName = _getWeatherIconName(cond.icon, isDay);
 
             let timeLabelText = _('Now');
             if (i > 0) {
@@ -326,6 +334,13 @@ class WeatherWidget extends BaseWidget {
 
             col.add_child(timeLabel);
             col.add_child(icon);
+            if (precipitation > 0) {
+                col.add_child(new St.Label({
+                    text: `${precipitation}%`,
+                    style_class: 'widget-weather-precipitation',
+                    x_align: Clutter.ActorAlign.CENTER,
+                }));
+            }
             col.add_child(tempLabel);
             hourlyBox.add_child(col);
         }
@@ -350,6 +365,7 @@ class WeatherWidget extends BaseWidget {
             const code = daily.weather_code ? daily.weather_code[i] : 0;
             const max = Math.round(daily.temperature_2m_max[i]);
             const min = Math.round(daily.temperature_2m_min[i]);
+            const precipitation = daily.precipitation_probability_max?.[i] ?? 0;
             const cond = WEATHER_CONDITIONS[code] ?? { icon: 'cloud' };
 
             let dayName = dateStr;
@@ -384,6 +400,12 @@ class WeatherWidget extends BaseWidget {
 
             row.add_child(dayLabel);
             row.add_child(icon);
+            if (precipitation > 0) {
+                row.add_child(new St.Label({
+                    text: `${precipitation}%`,
+                    style_class: 'widget-weather-precipitation',
+                }));
+            }
             row.add_child(rangeLabel);
             dailyBox.add_child(row);
         }
@@ -408,9 +430,7 @@ class WeatherWidget extends BaseWidget {
         const wind = Math.round(current.wind_speed_10m);
         const city = this._location?.city ?? '';
 
-        const headerIconName = current.is_day === 0 && condition.icon === 'sun'
-            ? 'cloud'
-            : condition.icon;
+        const headerIconName = _getWeatherIconName(condition.icon, current.is_day);
 
         this._card.destroy_all_children();
 
@@ -459,8 +479,13 @@ class WeatherWidget extends BaseWidget {
                 style_class: 'widget-weather-range',
                 x_align: Clutter.ActorAlign.START,
             });
-            const detailLabel = new St.Label({
-                text: `${_('Feels like')} ${feels}° · ${_('Humidity')} ${humidity}%`,
+            const feelsLabel = new St.Label({
+                text: `${_('Feels like')} ${feels}°`,
+                style_class: 'widget-weather-details',
+                x_align: Clutter.ActorAlign.START,
+            });
+            const humidityLabel = new St.Label({
+                text: `${_('Humidity')} ${humidity}%`,
                 style_class: 'widget-weather-details',
                 x_align: Clutter.ActorAlign.START,
             });
@@ -468,7 +493,8 @@ class WeatherWidget extends BaseWidget {
             leftCol.add_child(tempLabel);
             leftCol.add_child(conditionLabel);
             leftCol.add_child(rangeLabel);
-            leftCol.add_child(detailLabel);
+            leftCol.add_child(feelsLabel);
+            leftCol.add_child(humidityLabel);
 
             const rightCol = this._buildHourlyForecast(current, hourly, 5);
 
@@ -539,8 +565,10 @@ class WeatherWidget extends BaseWidget {
             const hourlyBox = this._buildHourlyForecast(current, hourly, 6);
             contentBox.add_child(hourlyBox);
 
-            const dailyBox = this._buildDailyForecast(daily, 3);
-            contentBox.add_child(dailyBox);
+            if (this.colSpan >= 4 && this.rowSpan >= 4) {
+                const dailyBox = this._buildDailyForecast(daily, 3);
+                contentBox.add_child(dailyBox);
+            }
         } else {
             const tempLabel = new St.Label({
                 text: `${temp}°`,

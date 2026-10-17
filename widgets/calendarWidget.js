@@ -1,6 +1,7 @@
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _, ngettext } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { BaseWidget } from '../core/baseWidget.js';
@@ -15,6 +16,7 @@ class CalendarWidget extends BaseWidget {
             rowSpan: params.rowSpan ?? 2,
         });
 
+        this._disableAdaptiveText = true;
         this._lastRenderedTier = null;
         this._card = new St.BoxLayout({
             style_class: 'widget-card widget-calendar-card',
@@ -48,10 +50,35 @@ class CalendarWidget extends BaseWidget {
         }
     }
 
-    _buildMonthGrid(date) {
+    _buildCompactCell(text, { header = false, today = false, dim = false } = {}) {
+        const classes = ['widget-calendar-compact-cell'];
+        if (today) classes.push('widget-calendar-compact-cell-today');
+
+        const cell = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            style_class: classes.join(' '),
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        const labelClasses = ['widget-calendar-compact-label'];
+        if (header) labelClasses.push('widget-calendar-compact-label-header');
+        if (today) labelClasses.push('widget-calendar-compact-label-today');
+        if (dim) labelClasses.push('widget-calendar-compact-label-dim');
+        cell.add_child(new St.Label({
+            text,
+            style_class: labelClasses.join(' '),
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+        }));
+        return cell;
+    }
+
+    _buildMonthGrid(date, compact = false) {
         const gridBox = new St.BoxLayout({
             orientation: Clutter.Orientation.VERTICAL,
-            style_class: 'widget-calendar-grid-box',
+            style_class: compact
+                ? 'widget-calendar-grid-box widget-calendar-grid-box-compact'
+                : 'widget-calendar-grid-box',
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
         });
@@ -66,10 +93,9 @@ class CalendarWidget extends BaseWidget {
             return new Intl.DateTimeFormat(undefined, { weekday: 'narrow', timeZone: 'UTC' }).format(date);
         });
         for (const h of headers) {
-            headerRow.add_child(new St.Label({
-                text: h,
-                style_class: 'widget-calendar-cell-header',
-            }));
+            headerRow.add_child(compact
+                ? this._buildCompactCell(h, { header: true })
+                : new St.Label({ text: h, style_class: 'widget-calendar-cell-header' }));
         }
         gridBox.add_child(headerRow);
 
@@ -108,15 +134,16 @@ class CalendarWidget extends BaseWidget {
                     isDim = true;
                 }
 
-                const label = new St.Label({
-                    text,
-                    style_class: isToday
-                        ? 'widget-calendar-cell widget-calendar-cell-today'
-                        : (isDim ? 'widget-calendar-cell widget-calendar-cell-dim' : 'widget-calendar-cell'),
-                    x_align: Clutter.ActorAlign.CENTER,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-                row.add_child(label);
+                row.add_child(compact
+                    ? this._buildCompactCell(text, { today: isToday, dim: isDim })
+                    : new St.Label({
+                        text,
+                        style_class: isToday
+                            ? 'widget-calendar-cell widget-calendar-cell-today'
+                            : (isDim ? 'widget-calendar-cell widget-calendar-cell-dim' : 'widget-calendar-cell'),
+                        x_align: Clutter.ActorAlign.CENTER,
+                        y_align: Clutter.ActorAlign.CENTER,
+                    }));
             }
 
             gridBox.add_child(row);
@@ -168,9 +195,12 @@ class CalendarWidget extends BaseWidget {
 
             const weekdayLabel = new St.Label({
                 text: weekday.toUpperCase(),
-                style_class: 'widget-calendar-weekday',
+                style_class: 'widget-calendar-weekday widget-calendar-weekday-compact',
                 x_align: Clutter.ActorAlign.START,
+                x_expand: true,
             });
+            weekdayLabel.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+            weekdayLabel.clutter_text.line_wrap = false;
             const dateLabel = new St.Label({
                 text: dayNumber,
                 style_class: 'widget-calendar-day',
@@ -186,7 +216,7 @@ class CalendarWidget extends BaseWidget {
             leftCol.add_child(dateLabel);
             leftCol.add_child(monthLabel);
 
-            const rightCol = this._buildMonthGrid(jsDate);
+            const rightCol = this._buildMonthGrid(jsDate, true);
 
             splitRow.add_child(leftCol);
             splitRow.add_child(rightCol);

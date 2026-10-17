@@ -17,9 +17,9 @@
 
 
 .widget-card {
-    font-family: 'Inter', 'SF Pro Text', 'Cantarell', sans-serif;
-    background-color: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.20);
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 28px;
     padding: 16px 18px;
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
@@ -38,8 +38,8 @@
 }
 
 .widget-card:hover {
-    background-color: rgba(255, 255, 255, 0.13);
-    border: 1px solid rgba(255, 255, 255, 0.26);
+    background-color: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 28px;
     background-repeat: no-repeat;
 }
@@ -58,6 +58,10 @@
     border-radius: 28px;
 }
 
+.widget-blur-surface.static-blur-fallback {
+    background-color: rgba(30, 30, 32, 0.78);
+}
+
 .widget-content-box {
     spacing: 6px;
 }
@@ -68,14 +72,14 @@
 
 
 .widget-header {
-    spacing: 8px;
+    spacing: 6px;
 }
 
 .widget-caption {
     font-family: 'Inter', 'Cantarell', sans-serif;
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.25px;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.45);
 }
@@ -176,22 +180,45 @@
 }
 
 .widget-analog-clock-card {
-    spacing: 6px;
+    spacing: 0;
+    padding: 6px;
 }
 
 .widget-analog-clock-face {
-    min-width: 120px;
-    min-height: 120px;
+    min-width: 0;
+    min-height: 0;
+}
+
+.widget-analog-clock-details {
+    spacing: 8px;
+}
+
+.widget-analog-clock-details-side {
+    spacing: 6px;
+    padding: 4px 10px;
+}
+
+.widget-analog-clock-time {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.widget-analog-clock-zone {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.62);
 }
 
 .widget-analog-clock-card.theme-light {
-    background-color: rgba(255, 255, 255, 0.78);
+    background-color: rgba(255, 255, 255, 0.16);
     border: 1px solid rgba(0, 0, 0, 0.10);
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
 }
 
 .widget-analog-clock-card.theme-light:hover {
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: rgba(255, 255, 255, 0.21);
     border: 1px solid rgba(0, 0, 0, 0.16);
 }
 
@@ -240,6 +267,11 @@
     color: #ff453a;
 }
 
+.widget-calendar-weekday-compact {
+    font-size: 12px;
+    letter-spacing: 0;
+}
+
 .widget-calendar-day {
     font-family: 'Inter', 'Cantarell', sans-serif;
     font-size: 60px;
@@ -281,32 +313,14 @@
 }
 
 .widget-gauge-track {
+    min-height: 10px;
     background-color: rgba(255, 255, 255, 0.14);
     border-radius: 5px;
 }
 
-.widget-gauge-fill {
-    background-color: #0a84ff;
-    border-radius: 5px;
+.widget-system-cpu-percent {
+    min-width: 96px;
 }
-
-
-.widget-gauge-blue {
-    background-color: #0a84ff;
-}
-
-.widget-gauge-green {
-    background-color: #30d158;
-}
-
-.widget-gauge-orange {
-    background-color: #ff9f0a;
-}
-
-.widget-gauge-red {
-    background-color: #ff453a;
-}
-
 
 .widget-android-selection-border {
     border: 2px solid #0a84ff;
@@ -361,6 +375,11 @@
 
 .widget-media-medium-title {
     font-size: 13px;
+}
+
+.widget-media-artist-medium {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.62);
 }
 
 .widget-media-wide-row {
@@ -490,6 +509,12 @@
     color: #ffffff;
 }
 
+.widget-weather-precipitation {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(125, 190, 255, 0.9);
+}
+
 .widget-weather-daily-box {
     spacing: 4px;
     margin-top: 6px;
@@ -565,6 +590,55 @@
     border-radius: 10px;
     color: #ffffff;
     font-weight: 700;
+}
+
+.widget-calendar-grid-box-compact {
+    spacing: 2px;
+    padding: 8px;
+    width: 145px;
+    height: 145px;
+    min-width: 145px;
+    max-width: 145px;
+    min-height: 145px;
+    max-height: 145px;
+}
+
+.widget-calendar-grid-box-compact .widget-calendar-grid-row {
+    spacing: 2px;
+}
+
+.widget-calendar-compact-cell {
+    width: 19px;
+    height: 19px;
+    min-width: 19px;
+    max-width: 19px;
+    min-height: 19px;
+    max-height: 19px;
+    border-radius: 10px;
+}
+
+.widget-calendar-compact-cell-today {
+    background-color: #ff3b30;
+}
+
+.widget-calendar-compact-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.widget-calendar-compact-label-header {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.48);
+}
+
+.widget-calendar-compact-label-today {
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.widget-calendar-compact-label-dim {
+    color: rgba(255, 255, 255, 0.20);
 }
 
 
@@ -665,6 +739,7 @@
 
 .widget-media-controls-large {
     spacing: 12px;
+    margin-top: 8px;
 }
 
 .widget-media-play-large {
@@ -704,4 +779,108 @@
     font-size: 11px;
     font-weight: 600;
     color: #ffffff;
+}
+
+.desktop-widget-manager-content {
+    width: 740px;
+    spacing: 14px;
+    padding: 8px;
+}
+
+.desktop-widget-manager-header {
+    spacing: 4px;
+    padding: 2px 8px 4px;
+}
+
+.desktop-widget-manager-heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.96);
+}
+
+.desktop-widget-manager-description {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.desktop-widget-manager-scroll {
+    min-width: 740px;
+    min-height: 360px;
+    max-height: 540px;
+}
+
+.desktop-widget-manager-grid {
+    spacing: 12px;
+    padding: 4px 8px 8px;
+}
+
+.desktop-widget-manager-row {
+    spacing: 12px;
+}
+
+.desktop-widget-manager-card {
+    width: 330px;
+    spacing: 10px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.055);
+}
+
+.desktop-widget-manager-preview {
+    width: 300px;
+    height: 190px;
+    border-radius: 16px;
+    background-color: rgba(0, 0, 0, 0.14);
+}
+
+.desktop-widget-manager-preview-empty {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.54);
+}
+
+.desktop-widget-manager-footer {
+    spacing: 12px;
+    min-height: 30px;
+}
+
+.desktop-widget-manager-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.desktop-widget-manager-switch-button {
+    padding: 0;
+    background-color: transparent;
+    border: 0;
+}
+
+.desktop-widget-manager-switch-track {
+    width: 44px;
+    height: 26px;
+    border-radius: 13px;
+    background-color: rgba(255, 255, 255, 0.22);
+}
+
+.desktop-widget-manager-switch-active {
+    background-color: #3584e4;
+}
+
+.desktop-widget-manager-switch-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: #ffffff;
+}
+
+.desktop-widget-manager-spacer {
+    width: 330px;
+}
+
+.desktop-widget-manager-empty {
+    min-width: 740px;
+    min-height: 360px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.62);
 }

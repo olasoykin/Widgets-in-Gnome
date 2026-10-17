@@ -24,6 +24,7 @@ class AnalogClockWidget extends BaseWidget {
 
         this._isDarkFace = this._detectIsDarkFace();
         this._colorSchemeChangedId = 0;
+        this._lastRenderedTier = null;
 
         this._card = new St.BoxLayout({
             style_class: `widget-card widget-clock-card widget-analog-clock-card ${this._isDarkFace ? 'theme-dark' : 'theme-light'}`,
@@ -44,15 +45,9 @@ class AnalogClockWidget extends BaseWidget {
         });
         this._face.connect('repaint', () => this._drawClock());
 
-        this._dateLabel = new St.Label({
-            text: '',
-            style_class: 'widget-clock-date',
-            x_align: Clutter.ActorAlign.CENTER,
-        });
-
         this._card.add_child(this._face);
-        this._card.add_child(this._dateLabel);
         this.setCard(this._card);
+        this._renderForSize();
 
         this._updateClock();
         this._clockTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
@@ -79,8 +74,65 @@ class AnalogClockWidget extends BaseWidget {
 
     _updateClock() {
         const now = GLib.DateTime.new_now_local();
-        this._dateLabel.text = now.format('%A, %-d %B') ?? '';
+        if (this._timeLabel) this._timeLabel.text = now.format('%H:%M') ?? '';
+        if (this._zoneLabel) this._zoneLabel.text = now.format('%Z') ?? '';
         this._face.queue_repaint();
+    }
+
+    onGeometryChanged() {
+        this._renderForSize();
+    }
+
+    _renderForSize() {
+        if (!this._card || !this._face) return;
+
+        const tier = this.sizeTier;
+        if (tier === this._lastRenderedTier) return;
+        this._lastRenderedTier = tier;
+        const isWide = this.colSpan >= 3;
+        this._card.orientation = isWide
+            ? Clutter.Orientation.HORIZONTAL
+            : Clutter.Orientation.VERTICAL;
+
+        for (const child of this._card.get_children()) {
+            this._card.remove_child(child);
+        }
+        this._card.add_child(this._face);
+
+        this._timeLabel = null;
+        this._zoneLabel = null;
+        if (tier === 'small') return;
+
+        this._timeLabel = new St.Label({
+            text: '',
+            style_class: 'widget-analog-clock-time',
+            x_align: Clutter.ActorAlign.CENTER,
+        });
+
+        if (isWide) {
+            const details = new St.BoxLayout({
+                style_class: 'widget-analog-clock-details widget-analog-clock-details-side',
+                orientation: Clutter.Orientation.VERTICAL,
+                x_expand: false,
+                y_expand: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            details.add_child(this._timeLabel);
+            if (tier === 'large') {
+                this._zoneLabel = new St.Label({
+                    text: '',
+                    style_class: 'widget-analog-clock-zone',
+                    x_align: Clutter.ActorAlign.CENTER,
+                });
+                details.add_child(this._zoneLabel);
+            }
+            this._card.add_child(details);
+        } else {
+            this._card.add_child(this._timeLabel);
+        }
+
+        this._updateClock();
     }
 
     _detectIsDarkFace() {

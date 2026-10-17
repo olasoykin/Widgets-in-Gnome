@@ -83,11 +83,23 @@ msgid "Translucent frosted-glass effect with background blur."
 msgstr ""
 
 #: prefs.js:82
-msgid "Background blur"
+msgid "Dynamic background blur"
 msgstr ""
 
 #: prefs.js:83
-msgid "Apply acrylic blur using Blur my Shell or native GNOME Shell."
+msgid "Apply live acrylic blur using Blur my Shell or native GNOME Shell."
+msgstr ""
+
+#: prefs.js:88
+msgid "Static blur for all widgets"
+msgstr ""
+
+#: prefs.js:89
+msgid "Use Blur my Shell’s static wallpaper blur instead of live blur."
+msgstr ""
+
+#: extension.js:252
+msgid "Preview your widgets and choose which ones appear on the desktop."
 msgstr ""
 
 #: widgets/batteryWidget.js:63

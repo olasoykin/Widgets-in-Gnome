@@ -4,7 +4,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-import { BaseWidget } from '../core/baseWidget.js';
+import { BaseWidget, configureWidgetCaption } from '../core/baseWidget.js';
 import { createIcon } from '../core/icons.js';
 
 const REFRESH_SECONDS = 3;
@@ -27,6 +27,15 @@ class NetworkWidget extends BaseWidget {
         });
 
         this._lastRenderedTier = null;
+        this._lastNetBytes = null;
+        this._downloadSpeed = 0;
+        this._uploadSpeed = 0;
+        this._activeName = _('No connection');
+        this._activeType = '';
+        this._activeDevice = '';
+        this._localIp = '';
+        this._ipCounter = 0;
+
         this._card = new St.BoxLayout({
             style_class: 'widget-card widget-common-card',
             orientation: Clutter.Orientation.VERTICAL,
@@ -37,15 +46,6 @@ class NetworkWidget extends BaseWidget {
             y_align: Clutter.ActorAlign.FILL,
         });
         this.setCard(this._card);
-
-        this._lastNetBytes = null;
-        this._downloadSpeed = 0;
-        this._uploadSpeed = 0;
-        this._activeName = _('No connection');
-        this._activeType = '';
-        this._activeDevice = '';
-        this._localIp = '';
-        this._ipCounter = 0;
 
         this._updateNetwork();
         this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, REFRESH_SECONDS, () => {
@@ -199,12 +199,12 @@ class NetworkWidget extends BaseWidget {
             x_expand: true,
             x_align: Clutter.ActorAlign.FILL,
         });
-        const caption = new St.Label({
+        const caption = configureWidgetCaption(new St.Label({
             text: _('Network').toUpperCase(),
             style_class: 'widget-caption',
             x_expand: true,
             x_align: Clutter.ActorAlign.START,
-        });
+        }));
         const typeLabel = new St.Label({
             text: this._activeType,
             style_class: 'widget-header-side',

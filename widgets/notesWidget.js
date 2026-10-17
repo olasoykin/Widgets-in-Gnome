@@ -5,7 +5,7 @@ import GObject from 'gi://GObject';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-import { BaseWidget } from '../core/baseWidget.js';
+import { BaseWidget, configureWidgetCaption } from '../core/baseWidget.js';
 import { createIcon } from '../core/icons.js';
 
 const EMPTY_HINT = _('Edit the notes file to see them here');
@@ -63,12 +63,12 @@ class NotesWidget extends BaseWidget {
             x_expand: true,
             x_align: Clutter.ActorAlign.FILL,
         });
-        const caption = new St.Label({
+        const caption = configureWidgetCaption(new St.Label({
             text: _('Notes').toUpperCase(),
             style_class: 'widget-caption',
             x_expand: true,
             x_align: Clutter.ActorAlign.START,
-        });
+        }));
         header.add_child(createIcon('notebook', 14));
         header.add_child(caption);
 

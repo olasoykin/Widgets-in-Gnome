@@ -9,14 +9,22 @@ import { BaseWidget } from './baseWidget.js';
 
 let activeContextMenuOwner = null;
 
-export function dismissActiveContextMenuAt(x, y) {
-    const menuActor = activeContextMenuOwner?._menu?.actor;
+export function dismissActiveContextMenuAt(x, y, button = 0) {
+    const owner = activeContextMenuOwner;
+    const menuActor = owner?._menu?.actor;
     if (!menuActor?.visible) return;
+
+    if (button === 3) {
+        const [ownerX, ownerY] = owner.get_transformed_position();
+        const [ownerWidth, ownerHeight] = owner.get_transformed_size();
+        if (x >= ownerX && x <= ownerX + ownerWidth &&
+            y >= ownerY && y <= ownerY + ownerHeight) return;
+    }
 
     const [menuX, menuY] = menuActor.get_transformed_position();
     const [menuWidth, menuHeight] = menuActor.get_transformed_size();
     if (x < menuX || x > menuX + menuWidth || y < menuY || y > menuY + menuHeight) {
-        activeContextMenuOwner._destroyMenu();
+        owner._destroyMenu();
     }
 }
 
@@ -139,6 +147,11 @@ class DesktopItem extends BaseWidget {
     }
 
     _showContextMenu([x, y]) {
+        if (activeContextMenuOwner === this && this._menu) {
+            this._destroyMenu();
+            this.setEditMode(false);
+            return;
+        }
         if (activeContextMenuOwner && activeContextMenuOwner !== this) {
             activeContextMenuOwner._destroyMenu();
         }

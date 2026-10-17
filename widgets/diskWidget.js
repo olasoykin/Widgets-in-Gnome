@@ -4,7 +4,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-import { BaseWidget } from '../core/baseWidget.js';
+import { BaseWidget, configureWidgetCaption } from '../core/baseWidget.js';
 import { createIcon } from '../core/icons.js';
 
 const REFRESH_SECONDS = 60;
@@ -106,12 +106,12 @@ class DiskWidget extends BaseWidget {
             x_expand: true,
             x_align: Clutter.ActorAlign.FILL,
         });
-        const caption = new St.Label({
+        const caption = configureWidgetCaption(new St.Label({
             text: _('Disk').toUpperCase(),
             style_class: 'widget-caption',
             x_expand: true,
             x_align: Clutter.ActorAlign.START,
-        });
+        }));
         const sideLabel = new St.Label({
             text: rootData?.type ? rootData.type.toUpperCase() : _('Storage').toUpperCase(),
             style_class: 'widget-header-side',

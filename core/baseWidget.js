@@ -1,3 +1,4 @@
+import Cairo from 'gi://cairo';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
@@ -5,12 +6,31 @@ import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { BlurManager } from './blur.js';
 
-const GAUGE_COLOR_CLASSES = [
-    'widget-gauge-blue',
-    'widget-gauge-green',
-    'widget-gauge-orange',
-    'widget-gauge-red',
-];
+const GAUGE_COLORS = {
+    'widget-gauge-blue': [10 / 255, 132 / 255, 1],
+    'widget-gauge-green': [48 / 255, 209 / 255, 88 / 255],
+    'widget-gauge-orange': [1, 159 / 255, 10 / 255],
+    'widget-gauge-red': [1, 69 / 255, 58 / 255],
+};
+
+function drawRoundedRect(context, width, height) {
+    const radius = Math.min(width / 2, height / 2);
+    context.newPath();
+    context.arc(width - radius, radius, radius, -Math.PI / 2, 0);
+    context.arc(width - radius, height - radius, radius, 0, Math.PI / 2);
+    context.arc(radius, height - radius, radius, Math.PI / 2, Math.PI);
+    context.arc(radius, radius, radius, Math.PI, 3 * Math.PI / 2);
+    context.closePath();
+}
+
+export function configureWidgetCaption(label) {
+    const text = label.get_clutter_text();
+    text.ellipsize = Pango.EllipsizeMode.NONE;
+    text.line_wrap = false;
+    label.x_expand = true;
+    label.x_align = Clutter.ActorAlign.START;
+    return label;
+}
 
 export const BaseWidget = GObject.registerClass({
     GTypeName: 'WidgetsBaseWidget',
@@ -37,12 +57,15 @@ export const BaseWidget = GObject.registerClass({
         this.maxRowSpan = params.maxRowSpan ?? 5;
         this.resizable = params.resizable ?? true;
         this._adaptiveLabels = new Map();
+        this._adaptiveLabelBaseSizes = new WeakMap();
         this._referenceColSpan = this.colSpan;
         this._referenceRowSpan = this.rowSpan;
 
         this.isEditMode = false;
         this._isDraggingWidget = false;
         this._isResizing = false;
+        this._blurEnabled = true;
+        this._staticBlurEnabled = false;
 
         this._blurWidget = new St.Widget({
             style_class: 'widget-blur-surface',
@@ -128,6 +151,9 @@ export const BaseWidget = GObject.registerClass({
             const newX = stageX - grabOffsetX;
             const newY = stageY - grabOffsetY;
 
+            if (!hasMoved) {
+                this.get_parent()?.set_child_above_sibling(this, null);
+            }
             hasMoved = true;
             this.set_position(newX, newY);
             return Clutter.EVENT_STOP;
@@ -157,7 +183,7 @@ export const BaseWidget = GObject.registerClass({
                     }
                 }
 
-                this.animateToGrid(280);
+                this.animateToGrid(120);
                 this._card?.remove_style_class_name('widget-no-shadow');
                 return Clutter.EVENT_STOP;
             }
@@ -231,56 +257,98 @@ export const BaseWidget = GObject.registerClass({
 
     
     _createGauge(fillClass = '') {
-        const track = new St.BoxLayout({
+        const track = new St.DrawingArea({
             style_class: 'widget-gauge-track',
             reactive: false,
             x_expand: true,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.CENTER,
         });
-        const fill = new St.Widget({
-            style_class: fillClass ? `widget-gauge-fill ${fillClass}` : 'widget-gauge-fill',
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        fill.height = 10;
-        track.add_child(fill);
-
-        const gauge = { track, fill, value: 0 };
-        track.connect('notify::allocation', () => this._layoutGauge(gauge));
+        const gauge = {
+            track,
+            value: 0,
+            color: GAUGE_COLORS[fillClass] ?? GAUGE_COLORS['widget-gauge-blue'],
+        };
+        track.connect('repaint', () => this._drawGauge(gauge));
         this._layoutGauge(gauge);
         return gauge;
     }
 
     
     _setGauge(gauge, fraction, colorClass = 'widget-gauge-blue') {
-        if (!gauge?.fill) return;
+        if (!gauge?.track) return;
 
         gauge.value = Math.max(0, Math.min(1, Number(fraction) || 0));
-        for (const name of GAUGE_COLOR_CLASSES) {
-            gauge.fill.remove_style_class_name(name);
-        }
-        gauge.fill.add_style_class_name(colorClass);
+        gauge.color = GAUGE_COLORS[colorClass] ?? GAUGE_COLORS['widget-gauge-blue'];
         this._layoutGauge(gauge);
     }
 
     _layoutGauge(gauge) {
-        if (!gauge?.track || !gauge.fill) return;
-        if (!gauge.track.get_stage()) return;
+        if (!gauge?.track) return;
 
-        const trackWidth = gauge.track.width;
-        if (trackWidth <= 0) return;
+        gauge.track.queue_repaint();
+    }
 
-        gauge.fill.set_width(Math.round(trackWidth * gauge.value));
+    _drawGauge(gauge) {
+        const [width, height] = gauge.track.get_surface_size();
+        if (width <= 0 || height <= 0) return;
+
+        const context = gauge.track.get_context();
+        try {
+            context.setOperator(Cairo.Operator.CLEAR);
+            context.paint();
+            context.setOperator(Cairo.Operator.OVER);
+
+            const fillWidth = Math.min(width, width * gauge.value);
+            if (fillWidth <= 0) return;
+
+            drawRoundedRect(context, fillWidth, height);
+            context.setSourceRGBA(...gauge.color, 1);
+            context.fill();
+        } finally {
+            context.$dispose();
+        }
     }
 
     setBlurEnabled(enabled) {
+        const next = Boolean(enabled);
+        if (this._blurEnabled === next) {
+            if ((this._blurEnabled || this._staticBlurEnabled) && !this._blurManager?.isActive) {
+                this._updateBlurPresentation();
+            }
+            return;
+        }
+        this._blurEnabled = next;
+        this._updateBlurPresentation();
+    }
+
+    setStaticBlurEnabled(enabled) {
+        const next = Boolean(enabled);
+        if (this._staticBlurEnabled === next) {
+            if ((this._blurEnabled || this._staticBlurEnabled) && !this._blurManager?.isActive) {
+                this._updateBlurPresentation();
+            }
+            return;
+        }
+        this._staticBlurEnabled = next;
+        this._updateBlurPresentation();
+    }
+
+    _updateBlurPresentation() {
+        const enabled = this._blurEnabled || this._staticBlurEnabled;
         if (enabled) {
             this._blurWidget?.show();
-            this._blurManager?.apply();
+            if (this._staticBlurEnabled) {
+                if (!this._blurManager?.isStatic) this._blurManager?.setStatic(true);
+                else if (!this._blurManager?.isActive) this._blurManager?.apply();
+            } else {
+                const modeChanged = this._blurManager?.setStatic(false);
+                if (!modeChanged && !this._blurManager?.isActive) this._blurManager?.apply();
+            }
             this._card?.remove_style_class_name('no-blur');
         } else {
             this._blurManager?.remove();
+            this._blurManager?.setStatic(false, false);
             this._blurWidget?.hide();
             this._card?.add_style_class_name('no-blur');
         }
@@ -332,6 +400,7 @@ export const BaseWidget = GObject.registerClass({
         if (typeof this.onGeometryChanged === 'function') {
             this.onGeometryChanged();
         }
+        if (this._staticBlurEnabled) this._blurManager?.scheduleStaticRefresh();
         this.emit('geometry-changed');
     }
 
@@ -365,14 +434,19 @@ export const BaseWidget = GObject.registerClass({
         if (typeof this.onGeometryChanged === 'function') {
             this.onGeometryChanged();
         }
+        if (this._staticBlurEnabled) this._blurManager?.scheduleStaticRefresh();
         this.emit('geometry-changed');
     }
 
     _collectAdaptiveLabels(actor) {
         if (actor instanceof St.Label && actor.get_stage()) {
-            const font = actor.get_theme_node()?.get_font();
-            const fontSize = font?.get_size() / Pango.SCALE;
-            if (fontSize > 0) this._adaptiveLabels.set(actor, fontSize);
+            let baseSize = this._adaptiveLabelBaseSizes.get(actor);
+            if (!baseSize) {
+                const font = actor.get_theme_node()?.get_font();
+                baseSize = font?.get_size() / Pango.SCALE;
+                if (baseSize > 0) this._adaptiveLabelBaseSizes.set(actor, baseSize);
+            }
+            if (baseSize > 0) this._adaptiveLabels.set(actor, baseSize);
         }
 
         for (const child of actor.get_children()) {
@@ -381,7 +455,7 @@ export const BaseWidget = GObject.registerClass({
     }
 
     _updateAdaptiveText(width, height) {
-        if (this._adaptiveLabels.size === 0 || !this.grid) return;
+        if (this._disableAdaptiveText || this._adaptiveLabels.size === 0 || !this.grid) return;
 
         const referenceWidth = this.grid.cellWidth * this._referenceColSpan + (this._referenceColSpan - 1) * this.grid.gapX;
         const referenceHeight = this.grid.cellHeight * this._referenceRowSpan + (this._referenceRowSpan - 1) * this.grid.gapY;
