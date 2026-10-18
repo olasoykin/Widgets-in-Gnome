@@ -179,6 +179,7 @@ class MediaWidget extends BaseWidget {
         this._artRetryId = 0;
         this._playerSubscriptions = new Map();
         this._nameOwnerChangedId = 0;
+        this._destroyed = false;
         this._positionAnchor = 0;
         this._positionAnchorTime = GLib.get_monotonic_time() / 1_000_000;
         this._timelineElapsedLabel = null;
@@ -214,6 +215,7 @@ class MediaWidget extends BaseWidget {
         });
 
         this.connect('destroy', () => {
+            this._destroyed = true;
             if (this._timelineTimeoutId) {
                 GLib.source_remove(this._timelineTimeoutId);
                 this._timelineTimeoutId = 0;
@@ -455,6 +457,8 @@ class MediaWidget extends BaseWidget {
     }
 
     async _watchPlayers() {
+        if (this._destroyed) return;
+
         this._nameOwnerChangedId = Gio.DBus.session.signal_subscribe(
             'org.freedesktop.DBus',
             'org.freedesktop.DBus',
@@ -463,6 +467,7 @@ class MediaWidget extends BaseWidget {
             null,
             Gio.DBusSignalFlags.NONE,
             (_connection, _sender, _path, _interface, _signal, parameters) => {
+                if (this._destroyed) return;
                 const [name, oldOwner, newOwner] = parameters.deep_unpack();
                 if (!name.startsWith(MPRIS_PREFIX)) return;
 
@@ -485,7 +490,7 @@ class MediaWidget extends BaseWidget {
             'ListNames',
             null
         );
-        if (!reply) return;
+        if (!reply || this._destroyed) return;
 
         const names = reply.deep_unpack()[0] ?? [];
         for (const name of names) {
@@ -495,7 +500,7 @@ class MediaWidget extends BaseWidget {
     }
 
     _subscribePlayer(playerName) {
-        if (this._playerSubscriptions.has(playerName)) return;
+        if (this._destroyed || this._playerSubscriptions.has(playerName)) return;
 
         const subscriptionId = Gio.DBus.session.signal_subscribe(
             playerName,
@@ -505,6 +510,7 @@ class MediaWidget extends BaseWidget {
             'org.mpris.MediaPlayer2.Player',
             Gio.DBusSignalFlags.NONE,
             (_connection, _sender, _path, _interface, _signal, parameters) => {
+                if (this._destroyed) return;
                 const [changedInterface, changedProperties] = parameters.deep_unpack();
                 if (changedInterface !== 'org.mpris.MediaPlayer2.Player') return;
                 if (!('Metadata' in changedProperties) && !('PlaybackStatus' in changedProperties)) return;
@@ -873,9 +879,6 @@ class MediaWidget extends BaseWidget {
             y_align: Clutter.ActorAlign.CENTER,
         });
 
-        const equalizer = new EqualizerBars();
-        equalizer.setPlaying(data.status === 'Playing');
-
         const playerTag = new St.Label({
             text: (data.playerName || '').toUpperCase(),
             style_class: 'widget-caption',
@@ -892,6 +895,8 @@ class MediaWidget extends BaseWidget {
         });
 
         if (!isSmall) {
+            const equalizer = new EqualizerBars();
+            equalizer.setPlaying(data.status === 'Playing');
             header.add_child(equalizer);
             if (data.playerName) {
                 header.add_child(playerTag);
