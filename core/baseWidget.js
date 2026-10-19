@@ -13,6 +13,8 @@ const GAUGE_COLORS = {
     'widget-gauge-red': [1, 69 / 255, 58 / 255],
 };
 
+const POINTER_DRAG_THRESHOLD = 8;
+
 function drawRoundedRect(context, width, height) {
     const radius = Math.min(width / 2, height / 2);
     context.newPath();
@@ -64,6 +66,8 @@ export const BaseWidget = GObject.registerClass({
         this.isEditMode = false;
         this._isDraggingWidget = false;
         this._isResizing = false;
+        this._moveGesture = null;
+        this._pointerGrab = null;
         this._blurEnabled = true;
         this._staticBlurEnabled = false;
 
@@ -78,6 +82,10 @@ export const BaseWidget = GObject.registerClass({
         });
 
         this.connect('destroy', () => {
+            this._endPointerGrab();
+            this._isDraggingWidget = false;
+            this._isResizing = false;
+            this._moveGesture = null;
             if (this._blurManager) {
                 this._blurManager.destroy();
                 this._blurManager = null;
@@ -105,11 +113,11 @@ export const BaseWidget = GObject.registerClass({
     }
 
     _setupDragAndEvents() {
-        let grabOffsetX = 0;
-        let grabOffsetY = 0;
-        let hasMoved = false;
-
         this.connect('button-press-event', (actor, event) => {
+            if (this._isDraggingWidget || this._isResizing || this._pointerGrab) {
+                return Clutter.EVENT_STOP;
+            }
+
             const button = event.get_button();
 
             if (button === 3) {
@@ -124,11 +132,7 @@ export const BaseWidget = GObject.registerClass({
             }
 
             if (button === 1 && this.isEditMode) {
-                const [stageX, stageY] = event.get_coords();
-                grabOffsetX = stageX - this.x;
-                grabOffsetY = stageY - this.y;
-                hasMoved = false;
-                this._isDraggingWidget = true;
+                this._beginPointerDrag(event);
                 this._card?.add_style_class_name('widget-no-shadow');
 
                 this.save_easing_state();
@@ -146,50 +150,100 @@ export const BaseWidget = GObject.registerClass({
 
         this.connect('motion-event', (actor, event) => {
             if (!this._isDraggingWidget) return Clutter.EVENT_PROPAGATE;
-
-            const [stageX, stageY] = event.get_coords();
-            const newX = stageX - grabOffsetX;
-            const newY = stageY - grabOffsetY;
-
-            if (!hasMoved) {
-                this.get_parent()?.set_child_above_sibling(this, null);
-            }
-            hasMoved = true;
-            this.set_position(newX, newY);
+            this._updatePointerDrag(event);
             return Clutter.EVENT_STOP;
         });
 
         this.connect('button-release-event', (actor, event) => {
-            if (this._isDraggingWidget) {
-                this._isDraggingWidget = false;
+            const didMove = this._finishPointerDrag(event);
+            if (didMove === null) return Clutter.EVENT_PROPAGATE;
 
-                if (hasMoved) {
-                    const colStep = this.grid.cellWidth + this.grid.gapX;
-                    const rowStep = this.grid.cellHeight + this.grid.gapY;
-
-                    const relX = this.x - this.grid.startX;
-                    const relY = this.y - this.grid.startY;
-
-                    let targetCol = Math.round(relX / colStep);
-                    let targetRow = Math.round(relY / rowStep);
-
-                    targetCol = Math.max(0, Math.min(this.grid.columns - this.colSpan, targetCol));
-                    targetRow = Math.max(0, Math.min(this.grid.rows - this.rowSpan, targetRow));
-
-                    const position = this._findAvailablePosition(targetCol, targetRow);
-                    if (position) {
-                        this.col = position.col;
-                        this.row = position.row;
-                    }
-                }
-
-                this.animateToGrid(120);
-                this._card?.remove_style_class_name('widget-no-shadow');
-                return Clutter.EVENT_STOP;
-            }
-
-            return Clutter.EVENT_PROPAGATE;
+            this.animateToGrid(120);
+            this._card?.remove_style_class_name('widget-no-shadow');
+            return Clutter.EVENT_STOP;
         });
+    }
+
+    _beginPointerDrag(event) {
+        if (this._isDraggingWidget) return false;
+
+        const [stageX, stageY] = event.get_coords();
+        this._beginPointerGrab(this);
+        this._moveGesture = {
+            startX: stageX,
+            startY: stageY,
+            offsetX: stageX - this.x,
+            offsetY: stageY - this.y,
+            moved: false,
+        };
+        this._isDraggingWidget = true;
+        return true;
+    }
+
+    _updatePointerDrag(event) {
+        const gesture = this._moveGesture;
+        if (!this._isDraggingWidget || !gesture) return false;
+
+        const [stageX, stageY] = event.get_coords();
+        if (!gesture.moved &&
+            Math.hypot(stageX - gesture.startX, stageY - gesture.startY) < POINTER_DRAG_THRESHOLD) {
+            return false;
+        }
+
+        if (!gesture.moved) this._blurManager?.raiseOwnerAndStaticLayer();
+        gesture.moved = true;
+        this.set_position(stageX - gesture.offsetX, stageY - gesture.offsetY);
+        return true;
+    }
+
+    _finishPointerDrag(event) {
+        if (!this._isDraggingWidget || event.get_button() !== 1) return null;
+
+        const didMove = Boolean(this._moveGesture?.moved);
+        this._isDraggingWidget = false;
+        this._moveGesture = null;
+        this._endPointerGrab();
+
+        if (didMove && this.grid) {
+            const colStep = this.grid.cellWidth + this.grid.gapX;
+            const rowStep = this.grid.cellHeight + this.grid.gapY;
+            const targetCol = Math.round((this.x - this.grid.startX) / colStep);
+            const targetRow = Math.round((this.y - this.grid.startY) / rowStep);
+            const position = this._findAvailablePosition(
+                Math.max(0, Math.min(this.grid.columns - this.colSpan, targetCol)),
+                Math.max(0, Math.min(this.grid.rows - this.rowSpan, targetRow))
+            );
+            if (position) {
+                this.col = position.col;
+                this.row = position.row;
+            }
+        }
+
+        return didMove;
+    }
+
+    _beginPointerGrab(actor) {
+        if (this._pointerGrab) return true;
+
+        try {
+            this._pointerGrab = global.stage.grab(actor) ?? null;
+        } catch (error) {
+            console.warn(`[Widgets] No se pudo capturar el puntero durante la interacción: ${error.message}`);
+        }
+
+        return Boolean(this._pointerGrab);
+    }
+
+    _endPointerGrab() {
+        const grab = this._pointerGrab;
+        this._pointerGrab = null;
+        if (!grab) return;
+
+        try {
+            grab.dismiss();
+        } catch (error) {
+            // The compositor may have revoked the grab already.
+        }
     }
 
     _isGridRectAvailable(col, row, colSpan, rowSpan) {
@@ -404,8 +458,23 @@ export const BaseWidget = GObject.registerClass({
         this.emit('geometry-changed');
     }
 
-    updateGeometry() {
+    animateIntoGrid(duration = 420) {
         if (!this.grid) return;
+
+        const rect = this.grid.getCellRect(this.col, this.row, this.colSpan, this.rowSpan);
+        this.set_position(rect.x, rect.y + 18);
+        this.set_scale(0.96, 0.96);
+        this.set_opacity(0);
+        this.animateToGrid(duration);
+    }
+
+    updateGeometry({ animate = false } = {}) {
+        if (!this.grid) return;
+
+        if (animate && this.get_stage()) {
+            this.animateToGrid(420);
+            return;
+        }
 
         const rect = this.grid.getCellRect(this.col, this.row, this.colSpan, this.rowSpan);
         this.set_position(rect.x, rect.y);
@@ -505,6 +574,7 @@ export const BaseWidget = GObject.registerClass({
             this.add_child(this._editOverlay);
         }
 
+        this._setEditHandlesReactive(true);
         this._updateHandlePositions(this.width, this.height);
 
         this._editOverlay.opacity = 0;
@@ -518,6 +588,7 @@ export const BaseWidget = GObject.registerClass({
 
     _hideEditOverlay() {
         if (this._editOverlay) {
+            this._setEditHandlesReactive(false);
             this._editOverlay.save_easing_state();
             this._editOverlay.set_easing_duration(150);
             this._editOverlay.set_easing_mode(Clutter.AnimationMode.EASE_OUT_QUAD);
@@ -530,6 +601,12 @@ export const BaseWidget = GObject.registerClass({
                 }
                 return GLib.SOURCE_REMOVE;
             });
+        }
+    }
+
+    _setEditHandlesReactive(reactive) {
+        for (const handle of [this._handleTop, this._handleBottom, this._handleLeft, this._handleRight]) {
+            if (handle) handle.reactive = reactive;
         }
     }
 
@@ -564,7 +641,10 @@ export const BaseWidget = GObject.registerClass({
 
         dot.connect('button-press-event', (actor, event) => {
             if (event.get_button() === 1) {
+                if (this._pointerGrab || this._isResizing) return Clutter.EVENT_STOP;
+
                 const [x, y] = event.get_coords();
+                this._beginPointerGrab(actor);
                 startPointer = { x, y };
                 startGeometry = { col: this.col, row: this.row, colSpan: this.colSpan, rowSpan: this.rowSpan };
                 isResizing = false;
@@ -580,7 +660,7 @@ export const BaseWidget = GObject.registerClass({
 
             const [currX, currY] = event.get_coords();
             const dist = Math.hypot(currX - startPointer.x, currY - startPointer.y);
-            if (dist > 8) {
+            if (dist >= POINTER_DRAG_THRESHOLD) {
                 isResizing = true;
                 this._onHandleDrag(direction, currX, currY, startGeometry);
             }
@@ -588,9 +668,11 @@ export const BaseWidget = GObject.registerClass({
         });
 
         dot.connect('button-release-event', (actor, event) => {
-            if (startPointer) {
+            if (startPointer && event.get_button() === 1) {
+                const didResize = isResizing;
                 this._isResizing = false;
-                if (!isResizing) {
+                this._endPointerGrab();
+                if (!didResize) {
                     this._onHandleClick(direction);
                 } else {
                     this.animateToGrid(200);

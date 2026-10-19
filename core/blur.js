@@ -140,6 +140,18 @@ export class BlurManager {
         return true;
     }
 
+    raiseOwnerAndStaticLayer() {
+        const owner = this._staticOwner ?? this.actor.get_parent();
+        const sceneParent = owner?.get_parent();
+        if (!owner || !sceneParent) return false;
+
+        sceneParent.set_child_above_sibling(owner, null);
+        if (this._staticGroup?.get_parent() === sceneParent) {
+            sceneParent.set_child_below_sibling(this._staticGroup, owner);
+        }
+        return true;
+    }
+
     scheduleStaticRefresh() {
         if (!this._static || this._destroyed || !this._staticBlurActor) return;
         if (this._staticRefreshId) return;
@@ -244,8 +256,7 @@ export class BlurManager {
     }
 
     _createBackgroundGroup(owner) {
-        const widgetContainer = owner.get_parent();
-        const sceneParent = widgetContainer?.get_parent() ?? Main.layoutManager._backgroundGroup ?? Main.uiGroup;
+        const sceneParent = owner.get_parent();
         if (!sceneParent) throw new Error('No se encontró el contenedor del escritorio.');
 
         const backgroundGroup = new Meta.BackgroundGroup({
@@ -253,7 +264,11 @@ export class BlurManager {
             width: 0,
             height: 0,
         });
-        const siblingIndex = sceneParent.get_children().indexOf(widgetContainer);
+
+        // Put the blurred backdrop above the other widgets, then keep its owner
+        // above it so the owner's card and information remain crisp.
+        sceneParent.set_child_above_sibling(owner, null);
+        const siblingIndex = sceneParent.get_children().indexOf(owner);
         sceneParent.insert_child_at_index(backgroundGroup, Math.max(0, siblingIndex));
         this._staticGroup = backgroundGroup;
         return backgroundGroup;

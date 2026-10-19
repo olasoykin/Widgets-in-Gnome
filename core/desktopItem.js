@@ -12,20 +12,20 @@ let activeContextMenuOwner = null;
 export function dismissActiveContextMenuAt(x, y, button = 0) {
     const owner = activeContextMenuOwner;
     const menuActor = owner?._menu?.actor;
-    if (!menuActor?.visible) return;
-
-    if (button === 3) {
-        const [ownerX, ownerY] = owner.get_transformed_position();
-        const [ownerWidth, ownerHeight] = owner.get_transformed_size();
-        if (x >= ownerX && x <= ownerX + ownerWidth &&
-            y >= ownerY && y <= ownerY + ownerHeight) return;
-    }
+    if (!menuActor?.visible) return 'none';
 
     const [menuX, menuY] = menuActor.get_transformed_position();
     const [menuWidth, menuHeight] = menuActor.get_transformed_size();
-    if (x < menuX || x > menuX + menuWidth || y < menuY || y > menuY + menuHeight) {
-        owner._destroyMenu();
+    const insideMenu = x >= menuX && x <= menuX + menuWidth &&
+        y >= menuY && y <= menuY + menuHeight;
+    if (insideMenu) return 'inside';
+
+    owner._destroyMenu();
+    if (button === 3) {
+        owner.setEditMode(false);
+        return 'dismissed-right-click';
     }
+    return 'dismissed';
 }
 
 export const DesktopItem = GObject.registerClass(
@@ -74,11 +74,9 @@ class DesktopItem extends BaseWidget {
     }
 
     _setupDragAndEvents() {
-        let grabOffsetX = 0;
-        let grabOffsetY = 0;
-        let hasMoved = false;
-
         this.connect('button-press-event', (actor, event) => {
+            if (this._isDraggingWidget || this._pointerGrab) return Clutter.EVENT_STOP;
+
             const button = event.get_button();
             if (button === 3) {
                 this.setEditMode(true);
@@ -87,11 +85,7 @@ class DesktopItem extends BaseWidget {
             }
 
             if (button === 1 && this.isEditMode) {
-                const [stageX, stageY] = event.get_coords();
-                grabOffsetX = stageX - this.x;
-                grabOffsetY = stageY - this.y;
-                hasMoved = false;
-                this._isDraggingWidget = true;
+                this._beginPointerDrag(event);
                 this._card?.add_style_class_name('no-drag-shadow');
                 this.set_scale(1.04, 1.04);
                 this.set_opacity(230);
@@ -108,31 +102,13 @@ class DesktopItem extends BaseWidget {
 
         this.connect('motion-event', (actor, event) => {
             if (!this._isDraggingWidget) return Clutter.EVENT_PROPAGATE;
-            const [stageX, stageY] = event.get_coords();
-            this.set_position(stageX - grabOffsetX, stageY - grabOffsetY);
-            hasMoved = true;
-            this._destroyMenu();
+            if (this._updatePointerDrag(event)) this._destroyMenu();
             return Clutter.EVENT_STOP;
         });
 
-        this.connect('button-release-event', () => {
-            if (!this._isDraggingWidget) return Clutter.EVENT_PROPAGATE;
-            this._isDraggingWidget = false;
-
-            if (hasMoved) {
-                const colStep = this.grid.cellWidth + this.grid.gapX;
-                const rowStep = this.grid.cellHeight + this.grid.gapY;
-                const targetCol = Math.round((this.x - this.grid.startX) / colStep);
-                const targetRow = Math.round((this.y - this.grid.startY) / rowStep);
-                const position = this._findAvailablePosition(
-                    Math.max(0, Math.min(this.grid.columns - 1, targetCol)),
-                    Math.max(0, Math.min(this.grid.rows - 1, targetRow))
-                );
-                if (position) {
-                    this.col = position.col;
-                    this.row = position.row;
-                }
-            }
+        this.connect('button-release-event', (_actor, event) => {
+            const didMove = this._finishPointerDrag(event);
+            if (didMove === null) return Clutter.EVENT_PROPAGATE;
 
             this.animateToGrid(220);
             this._card?.remove_style_class_name('no-drag-shadow');

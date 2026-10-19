@@ -1,7 +1,6 @@
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import Meta from 'gi://Meta';
 import St from 'gi://St';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -26,6 +25,8 @@ export default class WidgetsExtension extends Extension {
         this._widgetManagerDialog = null;
         this._widgetManagerScroll = null;
         this._widgetManagerPreviewWidgets = [];
+        this._widgetManagerPreviewJobs = [];
+        this._widgetManagerPreviewSourceId = 0;
         this._widgetsLoaded = false;
         this._widgetLoadGeneration = 0;
         this._desktopPositions = this._loadDesktopPositions();
@@ -49,34 +50,18 @@ export default class WidgetsExtension extends Extension {
 
         this._container = new Clutter.Actor({
             layout_manager: new Clutter.FixedLayout(),
-            // Let right-clicks on the empty desktop reach our background menu.
-            // Widgets and desktop items remain independently reactive as children.
+            // This actor receives clicks only on the empty desktop. Reactive child
+            // widgets and desktop items remain the event targets above it.
             reactive: true,
         });
         const [stageWidth, stageHeight] = global.stage.get_size();
         this._container.set_size(stageWidth, stageHeight);
+        this._container.connect('button-press-event', (_actor, event) => {
+            if (event.get_button() !== 3) return Clutter.EVENT_PROPAGATE;
 
-        this._container.connect('button-press-event', (actor, event) => {
-            if (event.get_button() === 3) {
-                const [x, y] = event.get_coords();
-                dismissActiveContextMenuAt(x, y, 3);
-                this._showDesktopMenu(x, y);
-                return Clutter.EVENT_STOP;
-            }
-            if (event.get_button() === 1) {
-                const [x, y] = event.get_coords();
-                for (const widget of this._widgets) {
-                    if (!widget.isEditMode) continue;
-
-                    const [wx, wy] = widget.get_transformed_position();
-                    const [ww, wh] = widget.get_transformed_size();
-                    const inside = x >= wx && x <= wx + ww && y >= wy && y <= wy + wh;
-                    if (!inside) {
-                        widget.setEditMode(false);
-                    }
-                }
-            }
-            return Clutter.EVENT_PROPAGATE;
+            const [x, y] = event.get_coords();
+            this._showDesktopMenu(x, y);
+            return Clutter.EVENT_STOP;
         });
 
         this._overlay = new GridOverlay(this._grid);
@@ -95,10 +80,7 @@ export default class WidgetsExtension extends Extension {
             if (event.type() !== Clutter.EventType.BUTTON_PRESS) return Clutter.EVENT_PROPAGATE;
 
             const button = event.get_button();
-            if (button !== 1 && button !== 3) return Clutter.EVENT_PROPAGATE;
-
             const [x, y] = event.get_coords();
-            let dismissedOpenMenu = false;
             const openMenuActor = this._desktopMenu?.actor;
             if (openMenuActor?.visible) {
                 const [menuX, menuY] = openMenuActor.get_transformed_position();
@@ -108,21 +90,13 @@ export default class WidgetsExtension extends Extension {
                 if (insideMenu) return Clutter.EVENT_PROPAGATE;
 
                 this._destroyDesktopMenu();
-                dismissedOpenMenu = true;
+                if (button === 3) return Clutter.EVENT_STOP;
             }
 
-            if (dismissedOpenMenu && button === 3) {
-                dismissActiveContextMenuAt(x, y, button);
-                return Clutter.EVENT_STOP;
-            }
+            const itemMenuState = dismissActiveContextMenuAt(x, y, button);
+            if (itemMenuState === 'inside') return Clutter.EVENT_PROPAGATE;
 
-            if (button === 3 && this._isDesktopBackgroundClick(x, y)) {
-                dismissActiveContextMenuAt(x, y, button);
-                this._showDesktopMenu(x, y);
-                return Clutter.EVENT_STOP;
-            }
-
-            dismissActiveContextMenuAt(x, y, button);
+            if (button !== 1 && button !== 3) return Clutter.EVENT_PROPAGATE;
 
             for (const widget of this._widgets) {
                 if (!widget.isEditMode) continue;
@@ -136,6 +110,8 @@ export default class WidgetsExtension extends Extension {
                 if (!inside) widget.setEditMode(false);
             }
 
+            if (itemMenuState === 'dismissed-right-click') return Clutter.EVENT_STOP;
+
             return Clutter.EVENT_PROPAGATE;
         });
         this._loadDesktopItems();
@@ -147,28 +123,6 @@ export default class WidgetsExtension extends Extension {
         const path = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP) ??
             GLib.build_filenamev([GLib.get_home_dir(), 'Desktop']);
         return Gio.File.new_for_path(path);
-    }
-
-    _isDesktopBackgroundClick(x, y) {
-        const onMonitor = Main.layoutManager.monitors.some(monitor =>
-            x >= monitor.x && y >= monitor.y &&
-            x < monitor.x + monitor.width && y < monitor.y + monitor.height
-        );
-        if (!onMonitor) return false;
-
-        const target = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, x, y);
-        for (let actor = target; actor; actor = actor.get_parent()) {
-            if (this._widgets.includes(actor) ||
-                actor === Main.panel?.actor ||
-                actor === this._desktopMenu?.actor ||
-                actor === Main.uiGroup) return false;
-
-            if (typeof actor.get_meta_window === 'function') {
-                const window = actor.get_meta_window();
-                if (window && window.get_window_type() !== Meta.WindowType.DESKTOP) return false;
-            }
-        }
-        return true;
     }
 
     _showDesktopMenu(x, y) {
@@ -287,8 +241,8 @@ export default class WidgetsExtension extends Extension {
             dialog.destroy();
         });
 
-        this._renderWidgetManager();
         dialog.open();
+        this._renderWidgetManager();
     }
 
     _closeWidgetManager() {
@@ -338,6 +292,7 @@ export default class WidgetsExtension extends Extension {
             grid.add_child(row);
         }
         this._widgetManagerScroll.set_child(grid);
+        this._scheduleWidgetManagerPreviewBuild();
     }
 
     _createWidgetManagerCard(entry) {
@@ -356,66 +311,16 @@ export default class WidgetsExtension extends Extension {
             reactive: false,
         });
         preview.set_clip(0, 0, previewWidth, previewHeight);
-
-        try {
-            const config = entry.config;
-            const colSpan = config.colSpan ?? 2;
-            const rowSpan = config.rowSpan ?? 2;
-            const previewCellSize = 100;
-            const grid = {
-                columns: colSpan,
-                rows: rowSpan,
-                startX: 0,
-                startY: 0,
-                gapX: 0,
-                gapY: 0,
-                cellWidth: previewCellSize,
-                cellHeight: previewCellSize,
-                isValidCell: (col, row, width, height) =>
-                    col >= 0 && row >= 0 && col + width <= colSpan && row + height <= rowSpan,
-                getCellRect: (col, row, width, height) => ({
-                    x: col * previewCellSize,
-                    y: row * previewCellSize,
-                    width: width * previewCellSize,
-                    height: height * previewCellSize,
-                }),
-            };
-            const previewWidget = new entry.Widget({
-                ...config,
-                grid,
-                col: 0,
-                row: 0,
-                colSpan,
-                rowSpan,
-                resizable: false,
-            });
-            this._widgetManagerPreviewWidgets.push(previewWidget);
-            const previewScale = Math.min(
-                previewWidth / (colSpan * previewCellSize),
-                previewHeight / (rowSpan * previewCellSize)
-            );
-            const previewX = (previewWidth - colSpan * previewCellSize * previewScale) / 2;
-            const previewY = (previewHeight - rowSpan * previewCellSize * previewScale) / 2;
-            previewWidget.connect('notify::mapped', () => {
-                if (!previewWidget.mapped) return;
-                previewWidget.set_pivot_point(0, 0);
-                previewWidget.set_scale(previewScale, previewScale);
-                previewWidget.set_position(previewX, previewY);
-            });
-            previewWidget.setBlurEnabled(false);
-            this._setPreviewReactive(previewWidget, false);
-            preview.add_child(previewWidget);
-        } catch (error) {
-            console.warn(`[Widgets] Could not preview ${entry.filename}: ${error.message}`);
-            preview.add_child(new St.Label({
-                text: _('Preview unavailable'),
-                style_class: 'desktop-widget-manager-preview-empty',
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-                x_expand: true,
-                y_expand: true,
-            }));
-        }
+        const placeholder = new St.Label({
+            text: _('Loading preview…'),
+            style_class: 'desktop-widget-manager-preview-empty',
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+            x_expand: true,
+            y_expand: true,
+        });
+        preview.add_child(placeholder);
+        this._widgetManagerPreviewJobs.push({ entry, preview, placeholder });
         card.add_child(preview);
 
         const footer = new St.BoxLayout({
@@ -470,6 +375,91 @@ export default class WidgetsExtension extends Extension {
         return card;
     }
 
+    _scheduleWidgetManagerPreviewBuild() {
+        if (this._widgetManagerPreviewSourceId || this._widgetManagerPreviewJobs.length === 0) return;
+
+        this._widgetManagerPreviewSourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT_IDLE, 16, () => {
+            if (!this._widgetManagerDialog || !this._widgetManagerScroll) {
+                this._widgetManagerPreviewSourceId = 0;
+                this._widgetManagerPreviewJobs = [];
+                return GLib.SOURCE_REMOVE;
+            }
+
+            const job = this._widgetManagerPreviewJobs.shift();
+            if (job?.preview.get_parent()) {
+                this._createWidgetManagerPreview(job.entry, job.preview, job.placeholder);
+            }
+
+            if (this._widgetManagerPreviewJobs.length > 0) return GLib.SOURCE_CONTINUE;
+            this._widgetManagerPreviewSourceId = 0;
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    _createWidgetManagerPreview(entry, preview, placeholder) {
+        placeholder.destroy();
+
+        try {
+            const config = entry.config;
+            const colSpan = config.colSpan ?? 2;
+            const rowSpan = config.rowSpan ?? 2;
+            const previewCellSize = 100;
+            const grid = {
+                columns: colSpan,
+                rows: rowSpan,
+                startX: 0,
+                startY: 0,
+                gapX: 0,
+                gapY: 0,
+                cellWidth: previewCellSize,
+                cellHeight: previewCellSize,
+                isValidCell: (col, row, width, height) =>
+                    col >= 0 && row >= 0 && col + width <= colSpan && row + height <= rowSpan,
+                getCellRect: (col, row, width, height) => ({
+                    x: col * previewCellSize,
+                    y: row * previewCellSize,
+                    width: width * previewCellSize,
+                    height: height * previewCellSize,
+                }),
+            };
+            const previewWidget = new entry.Widget({
+                ...config,
+                grid,
+                col: 0,
+                row: 0,
+                colSpan,
+                rowSpan,
+                resizable: false,
+            });
+            this._widgetManagerPreviewWidgets.push(previewWidget);
+            const previewScale = Math.min(
+                preview.width / (colSpan * previewCellSize),
+                preview.height / (rowSpan * previewCellSize)
+            );
+            const previewX = (preview.width - colSpan * previewCellSize * previewScale) / 2;
+            const previewY = (preview.height - rowSpan * previewCellSize * previewScale) / 2;
+            previewWidget.connect('notify::mapped', () => {
+                if (!previewWidget.mapped) return;
+                previewWidget.set_pivot_point(0, 0);
+                previewWidget.set_scale(previewScale, previewScale);
+                previewWidget.set_position(previewX, previewY);
+            });
+            previewWidget.setBlurEnabled(false);
+            this._setPreviewReactive(previewWidget, false);
+            preview.add_child(previewWidget);
+        } catch (error) {
+            console.warn(`[Widgets] Could not preview ${entry.filename}: ${error.message}`);
+            preview.add_child(new St.Label({
+                text: _('Preview unavailable'),
+                style_class: 'desktop-widget-manager-preview-empty',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: true,
+                y_expand: true,
+            }));
+        }
+    }
+
     _setPreviewReactive(actor, reactive) {
         actor.reactive = reactive;
         for (const child of actor.get_children()) {
@@ -478,6 +468,11 @@ export default class WidgetsExtension extends Extension {
     }
 
     _destroyWidgetManagerPreviews() {
+        if (this._widgetManagerPreviewSourceId) {
+            GLib.source_remove(this._widgetManagerPreviewSourceId);
+            this._widgetManagerPreviewSourceId = 0;
+        }
+        this._widgetManagerPreviewJobs = [];
         for (const widget of this._widgetManagerPreviewWidgets) {
             widget.destroy();
         }
@@ -626,6 +621,7 @@ export default class WidgetsExtension extends Extension {
             this._widgets.push(item);
             this._container.add_child(item);
             item.updateGeometry();
+            item.animateIntoGrid(380);
         }
 
         this._saveDesktopPositions();
@@ -732,6 +728,7 @@ export default class WidgetsExtension extends Extension {
             this._widgets.push(widget);
             this._pluginWidgets.push(widget);
             this._container.add_child(widget);
+            widget.animateIntoGrid();
             widget.setBlurEnabled(this._settings.get_boolean('enable-blur'));
             widget.setStaticBlurEnabled(this._settings.get_boolean('static-blur'));
         } catch (error) {
@@ -810,7 +807,7 @@ export default class WidgetsExtension extends Extension {
             }
 
             for (const widget of this._widgets) {
-                widget.updateGeometry();
+                widget.updateGeometry({ animate: true });
             }
         };
 
@@ -875,7 +872,7 @@ export default class WidgetsExtension extends Extension {
                 }
 
                 for (const widget of this._widgets) {
-                    widget.updateGeometry();
+                    widget.updateGeometry({ animate: true });
                 }
             }
         });
