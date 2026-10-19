@@ -18,17 +18,11 @@ You can install them using the **Extension Manager** app or from [extensions.gno
 ## Installation
 
 1. Install and enable **Blur my Shell** and **Add to Desktop**.
-2. Download this repository from GitHub using **Code > Download ZIP**, then extract the archive.
-3. Copy the project folder to `~/.local/share/gnome-shell/extensions/` and rename the copied folder to `widgets@kin`.
-4. Compile the settings schema in a terminal:
+2. Paste this command into a terminal to download, install, and enable Widgets:
 
    ```sh
-   glib-compile-schemas ~/.local/share/gnome-shell/extensions/widgets@kin/schemas/
-   ```
-
-5. Enable the extension:
-
-   ```sh
+   mkdir -p ~/.local/share/gnome-shell/extensions && \
+   git clone --depth=1 https://github.com/olasoykin/Widgets-in-Gnome.git ~/.local/share/gnome-shell/extensions/widgets@kin 
    gnome-extensions enable widgets@kin
    ```
 
