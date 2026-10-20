@@ -16,6 +16,9 @@ export class BlurManager {
         this.actor = actor;
         this.cornerRadius = options.cornerRadius ?? 24;
         this.effect = null;
+        this._dynamicPipeline = null;
+        this._dynamicPending = false;
+        this._dynamicSettingsSignals = [];
         this._isBmsEffect = false;
         this._themeContext = St.ThemeContext.get_for_stage(global.stage);
         this._settingsSignals = [];
@@ -29,6 +32,7 @@ export class BlurManager {
         this._staticGroup = null;
         this._staticBlurActor = null;
         this._staticPipeline = null;
+        this._staticRoundedPipeline = null;
         this._staticBackgroundManagers = [];
         this._staticNativeEffect = null;
         this._staticMonitorIndex = -1;
@@ -66,7 +70,7 @@ export class BlurManager {
     }
 
     get isActive() {
-        return this._active || this._staticPending || Boolean(this._mappedSignalId);
+        return this._active || this._dynamicPending || this._staticPending || Boolean(this._mappedSignalId);
     }
 
     apply() {
@@ -78,30 +82,111 @@ export class BlurManager {
         }
 
         const bms = global.blur_my_shell;
-        if (bms && bms._effects_manager) {
-            const sigma = bms._settings?.SIGMA ?? 30;
-            const brightness = bms._settings?.BRIGHTNESS ?? 0.65;
-
-            try {
-                this.effect = bms._effects_manager.new_native_dynamic_gaussian_blur_effect({
-                    unscaled_radius: sigma,
-                    brightness,
-                    unscaled_corner_radius: this.cornerRadius,
-                });
-                this._isBmsEffect = true;
-                this.actor.add_effect(this.effect);
-                this._active = true;
-
-                if (bms._settings?.settings) {
-                    this._connectBmsSettings(bms);
-                }
-                return;
-            } catch (err) {
-                console.warn('[Widgets Blur] Error al aplicar efecto de Blur my Shell:', err);
-                this._isBmsEffect = false;
-            }
+        const generation = this._staticGeneration;
+        if (bms?._effects_manager && bms?._pipelines_manager) {
+            this._dynamicPending = true;
+            this._applyBmsDynamic(bms, generation);
+            return;
         }
 
+        if (bms?._effects_manager && this._applyLegacyBmsDynamic(bms)) {
+            return;
+        }
+
+        this._applyNativeDynamic();
+    }
+
+    async _applyBmsDynamic(bms, generation) {
+        let pipeline = null;
+        try {
+            const DynamicPipeline = await this._loadBmsDynamicPipeline(bms);
+            if (!this._isCurrentDynamicRequest(generation)) return;
+            if (!DynamicPipeline) {
+                throw new Error('Blur my Shell no expone su canal dinámico de blur.');
+            }
+
+            const pipelineId = bms._settings?.popup?.PIPELINE ?? 'pipeline_default';
+            pipeline = new DynamicPipeline(
+                bms._effects_manager,
+                bms._pipelines_manager,
+                pipelineId,
+                {
+                    corner_radius: this.cornerRadius,
+                    get_corners: () => 0,
+                }
+            );
+            pipeline.attach_to_container(this.actor, 'widgets-live-blurred-background');
+            if (!pipeline.actor) {
+                throw new Error('No se pudo conectar el pipeline dinámico al widget.');
+            }
+
+            this._dynamicPipeline = pipeline;
+            this._connectBmsPipelineSettings(bms);
+            this._dynamicPending = false;
+            this._active = true;
+        } catch (error) {
+            pipeline?.destroy();
+            this._dynamicPipeline = null;
+            this._disconnectBmsPipelineSettings();
+            if (!this._isCurrentDynamicRequest(generation)) return;
+
+            this._dynamicPending = false;
+            console.warn('[Widgets Blur] No se pudo aplicar el pipeline dinámico de Blur my Shell:', error);
+            if (!this._applyLegacyBmsDynamic(bms)) {
+                this._applyNativeDynamic();
+            }
+        }
+    }
+
+    _isCurrentDynamicRequest(generation) {
+        return !this._destroyed && !this._static && generation === this._staticGeneration;
+    }
+
+    async _loadBmsDynamicPipeline(bms) {
+        const extensionPath = bms?.dir?.get_path?.() ?? bms?.path;
+        if (!extensionPath) return null;
+
+        const modulePath = GLib.build_filenamev([
+            extensionPath,
+            'render',
+            'dynamic_surface.js',
+        ]);
+        try {
+            const moduleUri = Gio.File.new_for_path(modulePath).get_uri();
+            const module = await import(moduleUri);
+            return module.DynamicPipeline ?? null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    _applyLegacyBmsDynamic(bms) {
+        if (typeof bms?._effects_manager?.new_native_dynamic_gaussian_blur_effect !== 'function') {
+            return false;
+        }
+
+        const sigma = bms._settings?.SIGMA ?? 30;
+        const brightness = bms._settings?.BRIGHTNESS ?? 0.65;
+        try {
+            this.effect = bms._effects_manager.new_native_dynamic_gaussian_blur_effect({
+                unscaled_radius: sigma,
+                brightness,
+                unscaled_corner_radius: this.cornerRadius,
+            });
+            this._isBmsEffect = true;
+            this.actor.add_effect(this.effect);
+            this._active = true;
+
+            if (bms._settings?.settings) this._connectBmsSettings(bms);
+            return true;
+        } catch (error) {
+            console.warn('[Widgets Blur] Error al aplicar el efecto antiguo de Blur my Shell:', error);
+            this._isBmsEffect = false;
+            return false;
+        }
+    }
+
+    _applyNativeDynamic() {
         try {
             const scaleFactor = this._themeContext.scale_factor;
             this.effect = new Shell.BlurEffect({ mode: Shell.BlurMode.BACKGROUND });
@@ -180,7 +265,10 @@ export class BlurManager {
 
         try {
             const bms = global.blur_my_shell;
-            const Pipeline = await this._loadBmsPipeline(bms);
+            const [Pipeline, RoundedPipeline] = await Promise.all([
+                this._loadBmsPipeline(bms),
+                this._loadBmsRoundedPipeline(bms),
+            ]);
             if (!this._isCurrentStaticRequest(generation)) return;
 
             const owner = this.actor.get_parent();
@@ -197,7 +285,7 @@ export class BlurManager {
                 if (!Pipeline || !bms?._effects_manager || !bms?._pipelines_manager) {
                     throw new Error('Blur my Shell no tiene disponible su canal de blur estático.');
                 }
-                this._createBmsStaticLayer(owner, monitor, bms, Pipeline);
+                this._createBmsStaticLayer(owner, monitor, bms, Pipeline, RoundedPipeline);
             } catch (error) {
                 console.warn('[Widgets Blur] No se pudo iniciar el canal estático de Blur my Shell; se usará el blur nativo:', error);
                 this._destroyStaticLayer();
@@ -226,17 +314,36 @@ export class BlurManager {
         const extensionPath = bms.dir?.get_path?.() ?? bms.path;
         if (!extensionPath) return null;
 
+        for (const directory of ['pipelines', 'conveniences']) {
+            const modulePath = GLib.build_filenamev([
+                extensionPath,
+                directory,
+                'pipeline.js',
+            ]);
+            try {
+                const moduleUri = Gio.File.new_for_path(modulePath).get_uri();
+                const module = await import(moduleUri);
+                if (module.Pipeline) return module.Pipeline;
+            } catch (error) {
+                // Older releases kept the pipeline helper in conveniences/.
+            }
+        }
+        return null;
+    }
+
+    async _loadBmsRoundedPipeline(bms) {
+        const extensionPath = bms?.dir?.get_path?.() ?? bms?.path;
+        if (!extensionPath) return null;
         const modulePath = GLib.build_filenamev([
             extensionPath,
-            'conveniences',
-            'pipeline.js',
+            'render',
+            'rounded_pipeline.js',
         ]);
         try {
             const moduleUri = Gio.File.new_for_path(modulePath).get_uri();
             const module = await import(moduleUri);
-            return module.Pipeline ?? null;
+            return module.RoundedPipeline ?? null;
         } catch (error) {
-            console.warn('[Widgets Blur] No se pudo cargar el canal estático de Blur my Shell:', error);
             return null;
         }
     }
@@ -274,7 +381,7 @@ export class BlurManager {
         return backgroundGroup;
     }
 
-    _createBmsStaticLayer(owner, monitor, bms, Pipeline) {
+    _createBmsStaticLayer(owner, monitor, bms, Pipeline, RoundedPipeline) {
         const backgroundGroup = this._createBackgroundGroup(owner);
         const pipelineId = bms._settings?.popup?.PIPELINE ?? 'pipeline_default';
         const pipeline = new Pipeline(
@@ -295,6 +402,16 @@ export class BlurManager {
         this._staticPipeline = pipeline;
         this._staticBlurActor = blurActor;
         this._staticBackgroundManagers = backgroundManagers;
+
+        if (RoundedPipeline) {
+            const roundedPipeline = new RoundedPipeline(
+                bms._effects_manager,
+                () => this.cornerRadius,
+                () => 0
+            );
+            roundedPipeline.bind(pipeline, blurActor);
+            this._staticRoundedPipeline = roundedPipeline;
+        }
 
         const popupSettings = bms._settings?.popup?.settings;
         if (popupSettings) {
@@ -391,12 +508,15 @@ export class BlurManager {
         const backgroundManagers = this._staticBackgroundManagers;
         const blurActor = this._staticBlurActor;
         const pipeline = this._staticPipeline;
+        const roundedPipeline = this._staticRoundedPipeline;
         const nativeEffect = this._staticNativeEffect;
         this._staticBackgroundManagers = [];
         this._staticBlurActor = null;
         this._staticPipeline = null;
+        this._staticRoundedPipeline = null;
         this._staticNativeEffect = null;
 
+        roundedPipeline?.destroy();
         if (pipeline) {
             pipeline.destroy();
             for (const manager of backgroundManagers) {
@@ -447,11 +567,40 @@ export class BlurManager {
         this._settingsSignals.push(id1, id2);
     }
 
+    _connectBmsPipelineSettings(bms) {
+        const popupSettings = bms._settings?.popup?.settings;
+        if (!popupSettings) return;
+
+        const id = popupSettings.connect('changed::pipeline', () => {
+            if (!this._dynamicPipeline || this._destroyed || this._static) return;
+            this._dynamicPipeline.change_pipeline_to(
+                bms._settings?.popup?.PIPELINE ?? 'pipeline_default'
+            );
+        });
+        this._dynamicSettingsSignals.push([popupSettings, id]);
+    }
+
+    _disconnectBmsPipelineSettings() {
+        for (const [settings, id] of this._dynamicSettingsSignals) {
+            try {
+                settings.disconnect(id);
+            } catch (error) {}
+        }
+        this._dynamicSettingsSignals = [];
+    }
+
     remove() {
         this._staticGeneration++;
+        this._dynamicPending = false;
         this._staticPending = false;
         this._active = false;
         this._disconnectSettings();
+        this._disconnectBmsPipelineSettings();
+
+        if (this._dynamicPipeline) {
+            this._dynamicPipeline.destroy();
+            this._dynamicPipeline = null;
+        }
 
         if (this._mappedSignalId) {
             this.actor.disconnect(this._mappedSignalId);
