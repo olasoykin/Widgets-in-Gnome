@@ -94,6 +94,10 @@ class WeatherWidget extends BaseWidget {
                 this._timeoutId = 0;
             }
             this._cancellable.cancel();
+            if (this._session) {
+                this._session.abort();
+                this._session = null;
+            }
         });
     }
 

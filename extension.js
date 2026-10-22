@@ -474,7 +474,11 @@ export default class WidgetsExtension extends Extension {
         }
         this._widgetManagerPreviewJobs = [];
         for (const widget of this._widgetManagerPreviewWidgets) {
-            widget.destroy();
+            try {
+                widget.destroy();
+            } catch (e) {
+                console.error(`[Widgets] Error destroying preview widget: ${e.message}`);
+            }
         }
         this._widgetManagerPreviewWidgets = [];
     }
@@ -740,7 +744,11 @@ export default class WidgetsExtension extends Extension {
         const disabled = new Set(this._settings.get_strv('disabled-widgets'));
         const removed = this._pluginWidgets.filter(widget => disabled.has(widget.widgetId));
         for (const widget of removed) {
-            widget.destroy();
+            try {
+                widget.destroy();
+            } catch (e) {
+                console.error(`[Widgets] Error destroying widget: ${e.message}`);
+            }
         }
         if (removed.length > 0) {
             const removedSet = new Set(removed);
@@ -758,7 +766,11 @@ export default class WidgetsExtension extends Extension {
         this._widgetsLoaded = false;
         this._widgetLoadGeneration++;
         for (const widget of this._pluginWidgets) {
-            widget.destroy();
+            try {
+                widget.destroy();
+            } catch (e) {
+                console.error(`[Widgets] Error destroying widget: ${e.message}`);
+            }
             this._widgets = this._widgets.filter(candidate => candidate !== widget);
         }
         this._pluginWidgets = [];
