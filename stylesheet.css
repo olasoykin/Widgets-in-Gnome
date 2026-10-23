@@ -181,7 +181,7 @@
 
 .widget-analog-clock-card {
     spacing: 0;
-    padding: 6px;
+    padding: 10px;
 }
 
 .widget-analog-clock-face {
@@ -190,24 +190,41 @@
 }
 
 .widget-analog-clock-details {
-    spacing: 8px;
+    spacing: 5px;
+    padding: 8px 12px;
 }
 
 .widget-analog-clock-details-side {
-    spacing: 6px;
-    padding: 4px 10px;
+    spacing: 8px;
+    padding: 12px 18px;
+}
+
+.widget-analog-clock-cities {
+    spacing: 4px;
+    padding: 5px 8px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
 }
 
 .widget-analog-clock-time {
-    font-family: 'Inter', 'Cantarell', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
+    font-family: 'Cantarell', sans-serif;
+    font-size: 36px;
+    font-weight: 200;
+    letter-spacing: -1px;
     color: rgba(255, 255, 255, 0.92);
 }
 
+.widget-analog-clock-date {
+    font-family: 'Cantarell', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding-top: 2px;
+    color: rgba(255, 255, 255, 0.68);
+}
+
 .widget-analog-clock-zone {
-    font-family: 'Inter', 'Cantarell', sans-serif;
-    font-size: 12px;
+    font-family: 'Cantarell', sans-serif;
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.62);
 }
 
@@ -224,6 +241,34 @@
 
 .widget-analog-clock-card.theme-light .widget-caption {
     color: rgba(0, 0, 0, 0.50);
+}
+
+.widget-analog-clock-card.theme-light .widget-analog-clock-time {
+    color: rgba(0, 0, 0, 0.88);
+}
+
+.widget-analog-clock-card.theme-light .widget-analog-clock-date {
+    color: rgba(0, 0, 0, 0.62);
+}
+
+.widget-analog-clock-card.theme-light .widget-analog-clock-zone {
+    color: rgba(0, 0, 0, 0.52);
+}
+
+.widget-analog-clock-card.theme-light .widget-analog-clock-cities {
+    background-color: rgba(0, 0, 0, 0.045);
+}
+
+.widget-analog-clock-card.theme-light .widget-clock-city-name {
+    color: rgba(0, 0, 0, 0.82);
+}
+
+.widget-analog-clock-card.theme-light .widget-clock-city-offset {
+    color: rgba(0, 0, 0, 0.48);
+}
+
+.widget-analog-clock-card.theme-light .widget-clock-city-time {
+    color: rgba(0, 0, 0, 0.84);
 }
 
 .widget-analog-clock-card.theme-light .widget-clock-date {
