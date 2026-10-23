@@ -6,6 +6,23 @@ Widgets is a GNOME Shell extension for placing customizable widgets on the deskt
 
 The extension declares compatibility with GNOME Shell 50 and 51.
 
+## Weather and notes
+
+Weather preferences let you choose a city, temperature units, and how often the forecast refreshes. If a custom city is disabled, the widget estimates a nearby location from your network address.
+
+The Notes widget reads `~/.config/widgets@kin/notes.txt`. Separate notes with a line containing `---`; start a note with `# Title` to give it a heading. It supports simple bold (`**text**`), italic (`*text*`), bullet (`- text`), and checklist (`- [ ]` / `- [x]`) formatting. For example:
+
+```text
+# Shopping
+- [ ] Coffee
+- [ ] Fruit
+
+---
+
+# Reminder
+Call **Ana** on Friday.
+```
+
 ## Dependencies
 
 Install these GNOME extensions before enabling Widgets:

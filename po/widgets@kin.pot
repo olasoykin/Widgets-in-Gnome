@@ -723,6 +723,82 @@ msgstr ""
 msgid "Wind"
 msgstr ""
 
+#: prefs.js:98
+msgid "Weather widget"
+msgstr ""
+
+#: prefs.js:99
+msgid "Choose how the weather widget finds and displays local conditions."
+msgstr ""
+
+#: prefs.js:105
+msgid "Use a custom city"
+msgstr ""
+
+#: prefs.js:106
+msgid "Use a city name instead of an approximate network location."
+msgstr ""
+
+#: prefs.js:112
+msgid "City or town"
+msgstr ""
+
+#: prefs.js:122
+msgid "Use Fahrenheit"
+msgstr ""
+
+#: prefs.js:123
+msgid "Also show wind speed in miles per hour."
+msgstr ""
+
+#: prefs.js:129
+msgid "Refresh interval"
+msgstr ""
+
+#: prefs.js:130
+msgid "How often to request updated weather data, in minutes."
+msgstr ""
+
+#: widgets/weatherWidget.js
+msgid "Set a city in Weather preferences"
+msgstr ""
+
+#: widgets/weatherWidget.js
+msgid "City not found"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Use a custom weather location"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Search for a city instead of estimating the location from the network address."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Weather city"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "City or town used by the weather widget when custom location is enabled."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Use Fahrenheit for weather"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Show temperature in Fahrenheit and wind speed in miles per hour."
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Weather refresh interval"
+msgstr ""
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Number of minutes between weather updates."
+msgstr ""
+
 #: widgets/diskWidget.js:159
 msgid "available"
 msgstr ""

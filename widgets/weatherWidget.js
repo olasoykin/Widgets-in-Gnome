@@ -48,7 +48,7 @@ function _getWeatherIconName(icon, isDay = 1) {
 }
 
 const LOCATION_CACHE_MAX_AGE_SECONDS = 24 * 60 * 60;
-const WEATHER_REFRESH_SECONDS = 30 * 60;
+const DEFAULT_WEATHER_REFRESH_MINUTES = 30;
 
 export const Widget = GObject.registerClass(
 class WeatherWidget extends BaseWidget {
@@ -61,9 +61,15 @@ class WeatherWidget extends BaseWidget {
 
         this._session = new Soup.Session();
         this._cancellable = new Gio.Cancellable();
+        this._settings = params.settings ?? null;
+        this._settingsSignals = [];
         this._location = null;
         this._weatherData = null;
         this._lastRenderedTier = null;
+        this._destroyed = false;
+        this._locationRequestId = 0;
+        this._weatherRequestId = 0;
+        this._locationDebounceId = 0;
 
         this._card = new St.BoxLayout({
             style_class: 'widget-card widget-common-card',
@@ -77,18 +83,23 @@ class WeatherWidget extends BaseWidget {
         this.setCard(this._card);
 
         this._renderEmpty(_('Loading weather…'));
+        this._bindWeatherSettings();
         this._loadLocation();
-
-        this._timeoutId = GLib.timeout_add_seconds(
-            GLib.PRIORITY_DEFAULT,
-            WEATHER_REFRESH_SECONDS,
-            () => {
-                this._fetchWeather();
-                return GLib.SOURCE_CONTINUE;
-            }
-        );
+        this._scheduleWeatherRefresh();
 
         this.connect('destroy', () => {
+            this._destroyed = true;
+            for (const id of this._settingsSignals) {
+                try {
+                    this._settings.disconnect(id);
+                } catch (_error) {
+                }
+            }
+            this._settingsSignals = [];
+            if (this._locationDebounceId) {
+                GLib.source_remove(this._locationDebounceId);
+                this._locationDebounceId = 0;
+            }
             if (this._timeoutId) {
                 GLib.source_remove(this._timeoutId);
                 this._timeoutId = 0;
@@ -99,6 +110,53 @@ class WeatherWidget extends BaseWidget {
                 this._session = null;
             }
         });
+    }
+
+    _bindWeatherSettings() {
+        if (!this._settings) return;
+
+        const locationChanged = () => this._loadLocation();
+        const unitsChanged = () => {
+            if (this._location) this._fetchWeather();
+            else this._loadLocation();
+        };
+        const intervalChanged = () => this._scheduleWeatherRefresh();
+
+        for (const [key, callback] of [
+            ['weather-use-custom-location', locationChanged],
+            ['weather-location', () => {
+                if (!this._settings.get_boolean('weather-use-custom-location')) return;
+                if (this._locationDebounceId) GLib.source_remove(this._locationDebounceId);
+                this._locationDebounceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 700, () => {
+                    this._locationDebounceId = 0;
+                    locationChanged();
+                    return GLib.SOURCE_REMOVE;
+                });
+            }],
+            ['weather-fahrenheit', unitsChanged],
+            ['weather-refresh-minutes', intervalChanged],
+        ]) {
+            this._settingsSignals.push(this._settings.connect(`changed::${key}`, callback));
+        }
+    }
+
+    _scheduleWeatherRefresh() {
+        if (this._timeoutId) {
+            GLib.source_remove(this._timeoutId);
+            this._timeoutId = 0;
+        }
+
+        const minutes = this._settings
+            ? Math.min(120, Math.max(15, this._settings.get_int('weather-refresh-minutes')))
+            : DEFAULT_WEATHER_REFRESH_MINUTES;
+        this._timeoutId = GLib.timeout_add_seconds(
+            GLib.PRIORITY_DEFAULT,
+            minutes * 60,
+            () => {
+                this._fetchWeather();
+                return GLib.SOURCE_CONTINUE;
+            }
+        );
     }
 
     onGeometryChanged() {
@@ -144,22 +202,70 @@ class WeatherWidget extends BaseWidget {
     }
 
     _loadLocation() {
+        const requestId = ++this._locationRequestId;
+        this._weatherRequestId++;
+        if (this._settings?.get_boolean('weather-use-custom-location')) {
+            const city = this._settings.get_string('weather-location').trim();
+            this._location = null;
+            this._weatherData = null;
+            if (!city) {
+                this._renderEmpty(_('Set a city in Weather preferences'));
+                return;
+            }
+            this._geocodeCity(city, requestId);
+            return;
+        }
+
         const cached = this._loadCachedLocation();
         if (cached) {
             this._location = cached;
             this._fetchWeather();
             return;
         }
-        this._geolocate();
+        this._geolocate(requestId);
     }
 
-    _geolocate() {
+    _geocodeCity(city, requestId) {
+        const encodedCity = encodeURIComponent(city);
+        const uri = 'https://geocoding-api.open-meteo.com/v1/search' +
+            `?name=${encodedCity}&count=1&language=es&format=json`;
+        const message = Soup.Message.new('GET', uri);
+        this._session.send_and_read_async(
+            message,
+            GLib.PRIORITY_DEFAULT,
+            this._cancellable,
+            (session, result) => {
+                if (this._destroyed || requestId !== this._locationRequestId) return;
+                try {
+                    const bytes = session.send_and_read_finish(result);
+                    const payload = JSON.parse(new TextDecoder().decode(bytes.get_data()));
+                    const place = payload?.results?.[0];
+                    if (!place || !Number.isFinite(place.latitude) || !Number.isFinite(place.longitude)) {
+                        this._renderEmpty(_('City not found'));
+                        return;
+                    }
+
+                    this._location = {
+                        latitude: place.latitude,
+                        longitude: place.longitude,
+                        city: [place.name, place.admin1].filter(Boolean).join(', '),
+                    };
+                    this._fetchWeather();
+                } catch (_error) {
+                    if (!this._destroyed) this._renderEmpty(_('No connection'));
+                }
+            }
+        );
+    }
+
+    _geolocate(requestId = this._locationRequestId) {
         const message = Soup.Message.new('GET', 'https://ipwho.is/');
         this._session.send_and_read_async(
             message,
             GLib.PRIORITY_DEFAULT,
             this._cancellable,
             (session, result) => {
+                if (this._destroyed || requestId !== this._locationRequestId) return;
                 let payload;
                 try {
                     const bytes = session.send_and_read_finish(result);
@@ -187,10 +293,14 @@ class WeatherWidget extends BaseWidget {
     }
 
     _fetchWeather() {
+        if (this._destroyed) return;
         if (!this._location) {
-            this._geolocate();
+            this._loadLocation();
             return;
         }
+
+        const requestId = ++this._weatherRequestId;
+        const fahrenheit = this._settings?.get_boolean('weather-fahrenheit') ?? false;
 
         const url =
             'https://api.open-meteo.com/v1/forecast' +
@@ -200,6 +310,8 @@ class WeatherWidget extends BaseWidget {
             'is_day,weather_code,wind_speed_10m' +
             '&hourly=temperature_2m,weather_code,is_day,precipitation_probability' +
             '&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max' +
+            `&temperature_unit=${fahrenheit ? 'fahrenheit' : 'celsius'}` +
+            `&wind_speed_unit=${fahrenheit ? 'mph' : 'kmh'}` +
             '&timezone=auto&forecast_days=5';
 
         const message = Soup.Message.new('GET', url);
@@ -208,9 +320,11 @@ class WeatherWidget extends BaseWidget {
             GLib.PRIORITY_DEFAULT,
             this._cancellable,
             (session, result) => {
+                if (this._destroyed || requestId !== this._weatherRequestId) return;
                 let payload;
                 try {
                     const bytes = session.send_and_read_finish(result);
+                    if (this._destroyed) return;
                     payload = JSON.parse(new TextDecoder().decode(bytes.get_data()));
                 } catch (_error) {
                     this._renderEmpty(_('No connection'));
@@ -230,6 +344,11 @@ class WeatherWidget extends BaseWidget {
                 this.refreshAdaptiveLabels();
             }
         );
+    }
+
+    _formatTemperature(value) {
+        const unit = this._settings?.get_boolean('weather-fahrenheit') ? '°F' : '°C';
+        return `${Math.round(value)}${unit}`;
     }
 
     _renderEmpty(message) {
@@ -331,7 +450,7 @@ class WeatherWidget extends BaseWidget {
             icon.x_align = Clutter.ActorAlign.CENTER;
 
             const tempLabel = new St.Label({
-                text: `${tempVal}°`,
+                text: this._formatTemperature(tempVal),
                 style_class: 'widget-weather-hourly-temp',
                 x_align: Clutter.ActorAlign.CENTER,
             });
@@ -396,7 +515,7 @@ class WeatherWidget extends BaseWidget {
             });
             const icon = createIcon(cond.icon, 14);
             const rangeLabel = new St.Label({
-                text: `${_('Min')} ${min}°  ·  ${_('Max')} ${max}°`,
+                text: `${_('Min')} ${this._formatTemperature(min)}  ·  ${_('Max')} ${this._formatTemperature(max)}`,
                 style_class: 'widget-weather-daily-range',
                 x_expand: true,
                 x_align: Clutter.ActorAlign.END,
@@ -432,6 +551,7 @@ class WeatherWidget extends BaseWidget {
         const min = Math.round(daily.temperature_2m_min?.[0] ?? temp);
         const humidity = current.relative_humidity_2m;
         const wind = Math.round(current.wind_speed_10m);
+        const windUnit = this._settings?.get_boolean('weather-fahrenheit') ? 'mph' : 'km/h';
         const city = this._location?.city ?? '';
 
         const headerIconName = _getWeatherIconName(condition.icon, current.is_day);
@@ -469,7 +589,7 @@ class WeatherWidget extends BaseWidget {
             });
 
             const tempLabel = new St.Label({
-                text: `${temp}°`,
+                text: this._formatTemperature(temp),
                 style_class: 'widget-common-value',
                 x_align: Clutter.ActorAlign.START,
             });
@@ -479,12 +599,12 @@ class WeatherWidget extends BaseWidget {
                 x_align: Clutter.ActorAlign.START,
             });
             const rangeLabel = new St.Label({
-                text: `${_('Max')} ${max}° · ${_('Min')} ${min}°`,
+                text: `${_('Max')} ${this._formatTemperature(max)} · ${_('Min')} ${this._formatTemperature(min)}`,
                 style_class: 'widget-weather-range',
                 x_align: Clutter.ActorAlign.START,
             });
             const feelsLabel = new St.Label({
-                text: `${_('Feels like')} ${feels}°`,
+                text: `${_('Feels like')} ${this._formatTemperature(feels)}`,
                 style_class: 'widget-weather-details',
                 x_align: Clutter.ActorAlign.START,
             });
@@ -521,7 +641,7 @@ class WeatherWidget extends BaseWidget {
             });
 
             const tempLabel = new St.Label({
-                text: `${temp}°`,
+                text: this._formatTemperature(temp),
                 style_class: 'widget-common-value',
                 x_align: Clutter.ActorAlign.START,
             });
@@ -531,7 +651,7 @@ class WeatherWidget extends BaseWidget {
                 x_align: Clutter.ActorAlign.START,
             });
             const rangeLabel = new St.Label({
-                text: `${_('Max')} ${max}° · ${_('Min')} ${min}°`,
+                text: `${_('Max')} ${this._formatTemperature(max)} · ${_('Min')} ${this._formatTemperature(min)}`,
                 style_class: 'widget-weather-range',
                 x_align: Clutter.ActorAlign.START,
             });
@@ -547,7 +667,7 @@ class WeatherWidget extends BaseWidget {
                 y_align: Clutter.ActorAlign.CENTER,
             });
             const feelsBadge = new St.Label({
-                text: `${_('Feels like')} ${feels}°`,
+                text: `${_('Feels like')} ${this._formatTemperature(feels)}`,
                 style_class: 'widget-badge',
             });
             const humidityBadge = new St.Label({
@@ -555,7 +675,7 @@ class WeatherWidget extends BaseWidget {
                 style_class: 'widget-badge',
             });
             const windBadge = new St.Label({
-                text: `${_('Wind')} ${wind} km/h`,
+                text: `${_('Wind')} ${wind} ${windUnit}`,
                 style_class: 'widget-badge',
             });
             badgesBox.add_child(feelsBadge);
@@ -575,7 +695,7 @@ class WeatherWidget extends BaseWidget {
             }
         } else {
             const tempLabel = new St.Label({
-                text: `${temp}°`,
+                text: this._formatTemperature(temp),
                 style_class: 'widget-common-value',
                 x_align: Clutter.ActorAlign.START,
             });
@@ -585,7 +705,7 @@ class WeatherWidget extends BaseWidget {
                 x_align: Clutter.ActorAlign.START,
             });
             const rangeLabel = new St.Label({
-                text: `${_('Max')} ${max}° · ${_('Min')} ${min}°`,
+                text: `${_('Max')} ${this._formatTemperature(max)} · ${_('Min')} ${this._formatTemperature(min)}`,
                 style_class: 'widget-weather-range',
                 x_align: Clutter.ActorAlign.START,
             });

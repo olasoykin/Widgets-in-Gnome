@@ -758,6 +758,82 @@ msgstr "núcleos de procesamiento"
 msgid "used"
 msgstr "usados"
 
+#: prefs.js
+msgid "Weather widget"
+msgstr "Widget del clima"
+
+#: prefs.js
+msgid "Choose how the weather widget finds and displays local conditions."
+msgstr "Elige cómo el widget del clima busca y muestra las condiciones locales."
+
+#: prefs.js
+msgid "Use a custom city"
+msgstr "Usar una ciudad específica"
+
+#: prefs.js
+msgid "Use a city name instead of an approximate network location."
+msgstr "Usa el nombre de una ciudad en lugar de una ubicación aproximada por la dirección de red."
+
+#: prefs.js
+msgid "City or town"
+msgstr "Ciudad o localidad"
+
+#: prefs.js
+msgid "Use Fahrenheit"
+msgstr "Usar Fahrenheit"
+
+#: prefs.js
+msgid "Also show wind speed in miles per hour."
+msgstr "También muestra la velocidad del viento en millas por hora."
+
+#: prefs.js
+msgid "Refresh interval"
+msgstr "Frecuencia de actualización"
+
+#: prefs.js
+msgid "How often to request updated weather data, in minutes."
+msgstr "Cada cuántos minutos solicitar datos meteorológicos actualizados."
+
+#: widgets/weatherWidget.js
+msgid "Set a city in Weather preferences"
+msgstr "Configura una ciudad en las preferencias del clima"
+
+#: widgets/weatherWidget.js
+msgid "City not found"
+msgstr "No se encontró la ciudad"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Use a custom weather location"
+msgstr "Usar una ubicación meteorológica personalizada"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Search for a city instead of estimating the location from the network address."
+msgstr "Busca una ciudad en lugar de estimar la ubicación a partir de la dirección de red."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Weather city"
+msgstr "Ciudad para el clima"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "City or town used by the weather widget when custom location is enabled."
+msgstr "Ciudad o localidad que usa el widget del clima cuando la ubicación personalizada está activada."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Use Fahrenheit for weather"
+msgstr "Usar Fahrenheit para el clima"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Show temperature in Fahrenheit and wind speed in miles per hour."
+msgstr "Muestra la temperatura en Fahrenheit y la velocidad del viento en millas por hora."
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Weather refresh interval"
+msgstr "Intervalo de actualización del clima"
+
+#: schemas/org.gnome.shell.extensions.widgets.gschema.xml
+msgid "Number of minutes between weather updates."
+msgstr "Cantidad de minutos entre las actualizaciones del clima."
+
 #~ msgid "Day"
 #~ msgstr "Día"
 

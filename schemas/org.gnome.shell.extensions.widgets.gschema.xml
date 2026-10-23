@@ -61,5 +61,25 @@
       <summary>Disabled desktop widgets</summary>
       <description>Widget module filenames that should not be shown on the desktop.</description>
     </key>
+    <key name="weather-use-custom-location" type="b">
+      <default>false</default>
+      <summary>Use a custom weather location</summary>
+      <description>Search for a city instead of estimating the location from the network address.</description>
+    </key>
+    <key name="weather-location" type="s">
+      <default>''</default>
+      <summary>Weather city</summary>
+      <description>City or town used by the weather widget when custom location is enabled.</description>
+    </key>
+    <key name="weather-fahrenheit" type="b">
+      <default>false</default>
+      <summary>Use Fahrenheit for weather</summary>
+      <description>Show temperature in Fahrenheit and wind speed in miles per hour.</description>
+    </key>
+    <key name="weather-refresh-minutes" type="i">
+      <default>30</default>
+      <summary>Weather refresh interval</summary>
+      <description>Number of minutes between weather updates.</description>
+    </key>
   </schema>
 </schemalist>

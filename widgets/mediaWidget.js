@@ -129,31 +129,35 @@ class EqualizerBars extends St.DrawingArea {
 
     _draw() {
         const cr = this.get_context();
-        const w = this.get_width();
-        const h = this.get_height();
-        if (w <= 0 || h <= 0) return;
+        try {
+            const w = this.get_width();
+            const h = this.get_height();
+            if (w <= 0 || h <= 0) return;
 
-        cr.setOperator(Cairo.Operator.CLEAR);
-        cr.paint();
-        cr.setOperator(Cairo.Operator.OVER);
+            cr.setOperator(Cairo.Operator.CLEAR);
+            cr.paint();
+            cr.setOperator(Cairo.Operator.OVER);
 
-        const numBars = 4;
-        const barWidth = 2.5;
-        const spacing = 4;
-        const startX = 2;
-        const bottomY = h - 2;
-        const maxH = h - 4;
+            const numBars = 4;
+            const barWidth = 2.5;
+            const spacing = 4;
+            const startX = 2;
+            const bottomY = h - 2;
+            const maxH = h - 4;
 
-        cr.setLineCap(Cairo.LineCap.ROUND);
-        cr.setLineWidth(barWidth);
-        cr.setSourceRGBA(1.0, 1.0, 1.0, 0.90);
+            cr.setLineCap(Cairo.LineCap.ROUND);
+            cr.setLineWidth(barWidth);
+            cr.setSourceRGBA(1.0, 1.0, 1.0, 0.90);
 
-        for (let i = 0; i < numBars; i++) {
-            const x = startX + i * spacing;
-            const hBar = Math.max(2, Math.round(this._barHeights[i] * maxH));
-            cr.moveTo(x, bottomY);
-            cr.lineTo(x, bottomY - hBar);
-            cr.stroke();
+            for (let i = 0; i < numBars; i++) {
+                const x = startX + i * spacing;
+                const hBar = Math.max(2, Math.round(this._barHeights[i] * maxH));
+                cr.moveTo(x, bottomY);
+                cr.lineTo(x, bottomY - hBar);
+                cr.stroke();
+            }
+        } finally {
+            cr.$dispose();
         }
     }
 });
@@ -180,6 +184,7 @@ class MediaWidget extends BaseWidget {
         this._playerSubscriptions = new Map();
         this._nameOwnerChangedId = 0;
         this._destroyed = false;
+        this._dbusCancellable = new Gio.Cancellable();
         this._positionAnchor = 0;
         this._positionAnchorTime = GLib.get_monotonic_time() / 1_000_000;
         this._timelineElapsedLabel = null;
@@ -216,6 +221,7 @@ class MediaWidget extends BaseWidget {
 
         this.connect('destroy', () => {
             this._destroyed = true;
+            this._dbusCancellable.cancel();
             if (this._timelineTimeoutId) {
                 GLib.source_remove(this._timelineTimeoutId);
                 this._timelineTimeoutId = 0;
@@ -531,7 +537,7 @@ class MediaWidget extends BaseWidget {
                 null,
                 Gio.DBusCallFlags.NONE,
                 -1,
-                null,
+                this._dbusCancellable,
                 (conn, result) => {
                     try {
                         resolve(conn.call_finish(result));
@@ -567,7 +573,7 @@ class MediaWidget extends BaseWidget {
                 'ListNames',
                 null
             );
-            if (!reply) return;
+            if (!reply || this._destroyed) return;
 
             const names = reply.deep_unpack()[0] ?? [];
             const players = names.filter(n => n.startsWith(MPRIS_PREFIX));
@@ -580,6 +586,7 @@ class MediaWidget extends BaseWidget {
             let chosen = null;
             for (const name of players) {
                 const status = await this._getPlayerProperty(name, 'PlaybackStatus');
+                if (this._destroyed) return;
                 if (status === 'Playing') {
                     chosen = name;
                     break;
@@ -594,7 +601,7 @@ class MediaWidget extends BaseWidget {
             this._playerName = chosen;
             await this._updateMetadata();
         } catch (_error) {
-            this._setIdleState();
+            if (!this._destroyed) this._setIdleState();
         }
     }
 
@@ -615,6 +622,7 @@ class MediaWidget extends BaseWidget {
     }
 
     async _updateMetadata() {
+        if (this._destroyed) return;
         if (!this._playerName) {
             this._setIdleState();
             return;
@@ -626,6 +634,7 @@ class MediaWidget extends BaseWidget {
                 this._getPlayerProperty(this._playerName, 'PlaybackStatus'),
                 this._getPlayerProperty(this._playerName, 'Position'),
             ]);
+            if (this._destroyed) return;
             if (!metadata) {
                 this._setIdleState();
                 return;
@@ -667,11 +676,12 @@ class MediaWidget extends BaseWidget {
             if (shouldRender) this._render();
             else this._updateTimeline();
         } catch (_error) {
-            this._setIdleState();
+            if (!this._destroyed) this._setIdleState();
         }
     }
 
     _setIdleState() {
+        if (this._destroyed) return;
         this._setArtworkSource('');
         this._currentData = {
             title: _('Nothing playing'),
@@ -699,11 +709,11 @@ class MediaWidget extends BaseWidget {
             null,
             Gio.DBusCallFlags.NONE,
             -1,
-            null,
+            this._dbusCancellable,
             null
         );
         GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
-            this._updateMetadata();
+            if (!this._destroyed) this._updateMetadata();
             return GLib.SOURCE_REMOVE;
         });
     }

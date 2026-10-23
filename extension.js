@@ -425,6 +425,7 @@ export default class WidgetsExtension extends Extension {
             const previewWidget = new entry.Widget({
                 ...config,
                 grid,
+                settings: this._settings,
                 col: 0,
                 row: 0,
                 colSpan,
@@ -722,6 +723,7 @@ export default class WidgetsExtension extends Extension {
             const widget = new entry.Widget({
                 ...config,
                 grid: this._grid,
+                settings: this._settings,
                 col: position.col,
                 row: position.row,
                 colSpan,

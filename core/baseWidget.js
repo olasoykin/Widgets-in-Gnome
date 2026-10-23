@@ -544,6 +544,13 @@ export const BaseWidget = GObject.registerClass({
         } else {
             this._hideEditOverlay();
         }
+
+        this.save_easing_state();
+        this.set_easing_duration(active ? 230 : 180);
+        this.set_easing_mode(Clutter.AnimationMode.EASE_OUT_CUBIC);
+        const scale = active ? 1.018 : 1.0;
+        this.set_scale(scale, scale);
+        this.restore_easing_state();
     }
 
     _showEditOverlay() {
@@ -584,18 +591,44 @@ export const BaseWidget = GObject.registerClass({
         this._editOverlay.set_easing_mode(Clutter.AnimationMode.EASE_OUT_QUAD);
         this._editOverlay.set_opacity(255);
         this._editOverlay.restore_easing_state();
+
+        const handles = [this._handleTop, this._handleRight, this._handleBottom, this._handleLeft]
+            .filter(Boolean);
+        handles.forEach((handle, index) => {
+            handle.set_pivot_point(0.5, 0.5);
+            handle.set_scale(0.65, 0.65);
+            handle.opacity = 0;
+            handle.save_easing_state();
+            handle.set_easing_delay(index * 30);
+            handle.set_easing_duration(230);
+            handle.set_easing_mode(Clutter.AnimationMode.EASE_OUT_CUBIC);
+            handle.set_scale(1.0, 1.0);
+            handle.set_opacity(255);
+            handle.restore_easing_state();
+        });
     }
 
     _hideEditOverlay() {
         if (this._editOverlay) {
             this._setEditHandlesReactive(false);
+            const handles = [this._handleLeft, this._handleBottom, this._handleRight, this._handleTop]
+                .filter(Boolean);
+            handles.forEach((handle, index) => {
+                handle.save_easing_state();
+                handle.set_easing_delay(index * 20);
+                handle.set_easing_duration(120);
+                handle.set_easing_mode(Clutter.AnimationMode.EASE_OUT_QUAD);
+                handle.set_scale(0.7, 0.7);
+                handle.set_opacity(0);
+                handle.restore_easing_state();
+            });
             this._editOverlay.save_easing_state();
-            this._editOverlay.set_easing_duration(150);
+            this._editOverlay.set_easing_duration(180);
             this._editOverlay.set_easing_mode(Clutter.AnimationMode.EASE_OUT_QUAD);
             this._editOverlay.set_opacity(0);
             this._editOverlay.restore_easing_state();
 
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 180, () => {
                 if (!this.isEditMode && this._editOverlay) {
                     this._editOverlay.hide();
                 }

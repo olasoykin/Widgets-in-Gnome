@@ -91,6 +91,55 @@ export default class WidgetsPreferences extends ExtensionPreferences {
         });
         settings.bind('static-blur', staticBlurRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         effectsGroup.add(staticBlurRow);
+
+        const weatherPage = new Adw.PreferencesPage({
+            title: _('Weather'),
+            icon_name: 'weather-clear-symbolic',
+        });
+        window.add(weatherPage);
+
+        const weatherGroup = new Adw.PreferencesGroup({
+            title: _('Weather widget'),
+            description: _('Choose how the weather widget finds and displays local conditions.'),
+        });
+        weatherPage.add(weatherGroup);
+
+        const customLocationRow = new Adw.SwitchRow({
+            title: _('Use a custom city'),
+            subtitle: _('Use a city name instead of an approximate network location.'),
+        });
+        settings.bind('weather-use-custom-location', customLocationRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        weatherGroup.add(customLocationRow);
+
+        const cityRow = new Adw.EntryRow({
+            title: _('City or town'),
+        });
+        settings.bind('weather-location', cityRow, 'text', Gio.SettingsBindFlags.DEFAULT);
+        cityRow.sensitive = customLocationRow.active;
+        customLocationRow.connect('notify::active', () => {
+            cityRow.sensitive = customLocationRow.active;
+        });
+        weatherGroup.add(cityRow);
+
+        const fahrenheitRow = new Adw.SwitchRow({
+            title: _('Use Fahrenheit'),
+            subtitle: _('Also show wind speed in miles per hour.'),
+        });
+        settings.bind('weather-fahrenheit', fahrenheitRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        weatherGroup.add(fahrenheitRow);
+
+        const refreshRow = new Adw.SpinRow({
+            title: _('Refresh interval'),
+            subtitle: _('How often to request updated weather data, in minutes.'),
+            adjustment: new Gtk.Adjustment({
+                lower: 15,
+                upper: 120,
+                step_increment: 15,
+                page_increment: 30,
+            }),
+        });
+        settings.bind('weather-refresh-minutes', refreshRow, 'value', Gio.SettingsBindFlags.DEFAULT);
+        weatherGroup.add(refreshRow);
     }
 
     async _populateWidgetList(group, settings) {

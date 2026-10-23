@@ -35,6 +35,9 @@ class NetworkWidget extends BaseWidget {
         this._activeDevice = '';
         this._localIp = '';
         this._ipCounter = 0;
+        this._destroyed = false;
+        this._updateInFlight = false;
+        this._commandCancellable = new Gio.Cancellable();
 
         this._card = new St.BoxLayout({
             style_class: 'widget-card widget-common-card',
@@ -54,6 +57,8 @@ class NetworkWidget extends BaseWidget {
         });
 
         this.connect('destroy', () => {
+            this._destroyed = true;
+            this._commandCancellable.cancel();
             if (this._timeoutId) {
                 GLib.source_remove(this._timeoutId);
                 this._timeoutId = 0;
@@ -99,7 +104,7 @@ class NetworkWidget extends BaseWidget {
                     argv,
                     Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
                 );
-                proc.communicate_utf8_async(null, null, (p, result) => {
+                proc.communicate_utf8_async(null, this._commandCancellable, (p, result) => {
                     try {
                         const [, stdout] = p.communicate_utf8_finish(result);
                         resolve(p.get_successful() ? (stdout ?? '') : '');
@@ -114,6 +119,8 @@ class NetworkWidget extends BaseWidget {
     }
 
     async _updateNetwork() {
+        if (this._destroyed || this._updateInFlight) return;
+        this._updateInFlight = true;
         try {
             const currentNet = this._readNetDev();
             if (currentNet && this._lastNetBytes) {
@@ -131,6 +138,7 @@ class NetworkWidget extends BaseWidget {
                     this._runCommand(['nmcli', '-t', '-f', 'DEVICE', 'connection', 'show', '--active']),
                     this._runCommand(['ip', '-json', 'address', 'show', 'scope', 'global']),
                 ]);
+                if (this._destroyed) return;
 
                 const nameList = names.split('\n').map(s => s.trim()).filter(Boolean);
                 const typeList = types.split('\n').map(s => s.trim()).filter(Boolean);
@@ -156,8 +164,11 @@ class NetworkWidget extends BaseWidget {
                 this._localIp = this._parseGlobalIp(ip) || _('No IP address');
             }
 
-            this._render();
-        } catch (_error) {}
+            if (!this._destroyed) this._render();
+        } catch (_error) {
+        } finally {
+            this._updateInFlight = false;
+        }
     }
 
     _parseGlobalIp(json) {

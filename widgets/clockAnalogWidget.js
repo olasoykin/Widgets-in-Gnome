@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Pango from 'gi://Pango';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { BaseWidget } from '../core/baseWidget.js';
@@ -102,7 +103,7 @@ class AnalogClockWidget extends BaseWidget {
         // Vertical growth reveals more content without shifting the dial.
         // Extra width gives the face a little more room while keeping it square.
         if (this.colSpan >= 4) return 220;
-        if (this.colSpan >= 3) return 200;
+        if (this.colSpan >= 3) return 156;
         return 184;
     }
 
@@ -201,31 +202,45 @@ class AnalogClockWidget extends BaseWidget {
             style_class: 'widget-analog-clock-time',
             x_align: isWide ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER,
         });
-        this._dateLabel = new St.Label({
-            text: '',
-            style_class: 'widget-analog-clock-date',
-            x_align: isWide ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER,
-        });
+        this._dateLabel = null;
+        if (isWide) {
+            this._dateLabel = new St.Label({
+                text: '',
+                style_class: `widget-analog-clock-date${this.colSpan === 3 ? ' widget-analog-clock-date-compact' : ''}`,
+                x_align: this.colSpan === 3 ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
+            });
+            this._dateLabel.clutter_text.line_wrap = false;
+            this._dateLabel.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+        }
 
         const details = new St.BoxLayout({
-            style_class: `widget-analog-clock-details${isWide ? ' widget-analog-clock-details-side' : ''}`,
+            style_class: `widget-analog-clock-details${isWide
+                ? (this.colSpan === 3
+                    ? ' widget-analog-clock-details-side widget-analog-clock-details-compact-side'
+                    : ' widget-analog-clock-details-side')
+                : ''}`,
             orientation: Clutter.Orientation.VERTICAL,
             x_expand: isWide,
             y_expand: true,
-            x_align: isWide ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.START,
+            x_align: isWide && this.colSpan >= 4
+                ? Clutter.ActorAlign.START
+                : Clutter.ActorAlign.CENTER,
+            y_align: isWide ? Clutter.ActorAlign.CENTER : Clutter.ActorAlign.START,
         });
         details.add_child(this._timeLabel);
-        details.add_child(this._dateLabel);
-        this._zoneLabel = new St.Label({
-            text: '',
-            style_class: 'widget-analog-clock-zone',
-            x_align: isWide ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER,
-        });
-        details.add_child(this._zoneLabel);
-        if (this.rowSpan >= 3) {
+        if (this._dateLabel) details.add_child(this._dateLabel);
+        this._zoneLabel = null;
+        if (isWide) {
+            this._zoneLabel = new St.Label({
+                text: '',
+                style_class: 'widget-analog-clock-zone',
+                x_align: this.colSpan >= 4 ? Clutter.ActorAlign.START : Clutter.ActorAlign.CENTER,
+            });
+            details.add_child(this._zoneLabel);
+        }
+        if ((isWide && this.rowSpan >= 3) || (!isWide && this.rowSpan >= 4)) {
             const now = GLib.DateTime.new_now_local();
-            const cityCount = this.rowSpan >= 4 || this.colSpan >= 4 ? 4 : 3;
+            const cityCount = isWide && this.colSpan >= 4 ? 4 : 3;
             const cities = this._buildWorldClockList(now, cityCount);
             cities.margin_top = 8;
             details.add_child(cities);

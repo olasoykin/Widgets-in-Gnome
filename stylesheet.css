@@ -199,6 +199,11 @@
     padding: 12px 18px;
 }
 
+.widget-analog-clock-details-compact-side {
+    spacing: 4px;
+    padding: 4px 8px;
+}
+
 .widget-analog-clock-cities {
     spacing: 4px;
     padding: 5px 8px;
@@ -220,6 +225,10 @@
     font-weight: 500;
     padding-top: 2px;
     color: rgba(255, 255, 255, 0.68);
+}
+
+.widget-analog-clock-date-compact {
+    font-size: 10px;
 }
 
 .widget-analog-clock-zone {
@@ -512,6 +521,28 @@
     font-family: 'SF Pro Text', 'Inter', 'Cantarell', sans-serif;
     font-size: 13px;
     color: rgba(255, 255, 255, 0.88);
+}
+
+.widget-notes-scroll {
+    min-height: 0;
+}
+
+.widget-notes-list {
+    spacing: 8px;
+    padding-right: 4px;
+}
+
+.widget-note-item {
+    spacing: 4px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.widget-notes-title {
+    font-family: 'Inter', 'Cantarell', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.96);
 }
 
 .widget-notes-empty {
