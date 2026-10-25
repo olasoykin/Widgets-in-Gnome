@@ -128,6 +128,17 @@
     padding: 8px;
 }
 
+.desktop-item-selected {
+    background-color: rgba(53, 132, 228, 0.24);
+    border: 1px solid rgba(53, 132, 228, 0.78);
+    border-radius: 8px;
+}
+
+.desktop-selection-band {
+    background-color: rgba(53, 132, 228, 0.18);
+    border: 1px solid rgba(53, 132, 228, 0.9);
+}
+
 .desktop-item-icon {
     color: #ffffff;
 }
@@ -959,4 +970,334 @@
     min-height: 360px;
     font-size: 14px;
     color: rgba(255, 255, 255, 0.62);
+}
+
+/* ============================================================
+   Light theme overrides — applied when .light-theme is set on
+   the root container (either via extension setting or system
+   prefer-light colour-scheme).
+   Icon colours are handled by the GNOME theme automatically,
+   so only text and surface colours are overridden here.
+   ============================================================ */
+
+/* --- Grid overlay cells --- */
+.light-theme .widget-grid-cell {
+    border: 1px dashed rgba(0, 0, 0, 0.12);
+    background-color: rgba(0, 0, 0, 0.018);
+}
+
+.light-theme .widget-grid-cell-label {
+    color: rgba(0, 0, 0, 0.22);
+}
+
+/* --- Cards --- */
+.light-theme .widget-card {
+    background-color: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+}
+
+.light-theme .widget-card:hover {
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.light-theme .widget-card.no-blur {
+    background-color: rgba(240, 240, 242, 0.96);
+    border: 1px solid rgba(0, 0, 0, 0.10);
+}
+
+.light-theme .widget-blur-surface.static-blur-fallback {
+    background-color: rgba(240, 240, 242, 0.88);
+}
+
+/* --- Common text --- */
+.light-theme .widget-caption {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+.light-theme .widget-header-side {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+.light-theme .widget-title {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .widget-size-badge {
+    color: rgba(0, 0, 0, 0.80);
+    background-color: rgba(0, 0, 0, 0.10);
+}
+
+.light-theme .widget-hint {
+    color: rgba(0, 0, 0, 0.42);
+}
+
+/* --- Clock --- */
+.light-theme .widget-clock-time {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .widget-clock-seconds {
+    color: rgba(0, 0, 0, 0.50);
+}
+
+.light-theme .widget-clock-date {
+    color: rgba(0, 0, 0, 0.60);
+}
+
+/* --- Analog clock --- */
+.light-theme .widget-analog-clock-cities {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .widget-analog-clock-time {
+    color: rgba(0, 0, 0, 0.88);
+}
+
+.light-theme .widget-analog-clock-date {
+    color: rgba(0, 0, 0, 0.62);
+}
+
+.light-theme .widget-analog-clock-zone {
+    color: rgba(0, 0, 0, 0.52);
+}
+
+/* --- Calendar --- */
+.light-theme .widget-calendar-day {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .widget-calendar-month {
+    color: rgba(0, 0, 0, 0.58);
+}
+
+/* --- Calendar grid --- */
+.light-theme .widget-calendar-grid-box {
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.light-theme .widget-calendar-cell-header {
+    color: rgba(0, 0, 0, 0.40);
+}
+
+.light-theme .widget-calendar-cell {
+    color: rgba(0, 0, 0, 0.72);
+}
+
+.light-theme .widget-calendar-cell-dim {
+    color: rgba(0, 0, 0, 0.20);
+}
+
+.light-theme .widget-calendar-compact-label {
+    color: rgba(0, 0, 0, 0.78);
+}
+
+.light-theme .widget-calendar-compact-label-header {
+    color: rgba(0, 0, 0, 0.40);
+}
+
+.light-theme .widget-calendar-compact-label-dim {
+    color: rgba(0, 0, 0, 0.22);
+}
+
+/* --- Battery --- */
+.light-theme .widget-battery-value {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+/* --- Common value / detail --- */
+.light-theme .widget-common-title {
+    color: rgba(0, 0, 0, 0.52);
+}
+
+.light-theme .widget-common-value {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .widget-common-detail {
+    color: rgba(0, 0, 0, 0.52);
+}
+
+/* --- Gauges --- */
+.light-theme .widget-gauge-label {
+    color: rgba(0, 0, 0, 0.52);
+}
+
+.light-theme .widget-gauge-value {
+    color: rgba(0, 0, 0, 0.78);
+}
+
+.light-theme .widget-gauge-track {
+    background-color: rgba(0, 0, 0, 0.12);
+}
+
+/* --- Weather --- */
+.light-theme .widget-weather-range {
+    color: rgba(0, 0, 0, 0.78);
+}
+
+.light-theme .widget-weather-details {
+    color: rgba(0, 0, 0, 0.50);
+}
+
+.light-theme .widget-weather-hourly-box {
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.light-theme .widget-weather-hourly-time {
+    color: rgba(0, 0, 0, 0.58);
+}
+
+.light-theme .widget-weather-hourly-temp {
+    color: rgba(0, 0, 0, 0.88);
+}
+
+.light-theme .widget-weather-daily-day {
+    color: rgba(0, 0, 0, 0.80);
+}
+
+.light-theme .widget-weather-daily-range {
+    color: rgba(0, 0, 0, 0.58);
+}
+
+.light-theme .widget-badge {
+    background-color: rgba(0, 0, 0, 0.07);
+    color: rgba(0, 0, 0, 0.72);
+}
+
+/* --- Network --- */
+.light-theme .widget-network-detail {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+.light-theme .widget-network-speed-badge {
+    background-color: rgba(0, 0, 0, 0.07);
+    color: rgba(0, 0, 0, 0.85);
+}
+
+/* --- Media --- */
+.light-theme .widget-media-title {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .widget-media-artist-medium {
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.light-theme .widget-media-time {
+    color: rgba(0, 0, 0, 0.48);
+}
+
+.light-theme .widget-media-progress-track {
+    background-color: rgba(0, 0, 0, 0.14);
+}
+
+.light-theme .widget-media-progress-fill {
+    background-color: rgba(0, 0, 0, 0.80);
+}
+
+.light-theme .widget-media-title-large {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .widget-media-artist-large {
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.light-theme .widget-media-player-badge {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+.light-theme .widget-media-cover {
+    background-color: rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.light-theme .widget-media-cover-large {
+    background-color: rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+/* --- Notes --- */
+.light-theme .widget-notes-text {
+    color: rgba(0, 0, 0, 0.85);
+}
+
+.light-theme .widget-note-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+}
+
+.light-theme .widget-notes-title {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .widget-notes-empty {
+    color: rgba(0, 0, 0, 0.38);
+}
+
+/* --- Clock cities box --- */
+.light-theme .widget-clock-cities-box {
+    background-color: rgba(0, 0, 0, 0.045);
+}
+
+.light-theme .widget-clock-city-name {
+    color: rgba(0, 0, 0, 0.85);
+}
+
+.light-theme .widget-clock-city-offset {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+.light-theme .widget-clock-city-time {
+    color: rgba(0, 0, 0, 0.82);
+}
+
+/* --- System detail pill --- */
+.light-theme .widget-system-detail-pill {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.70);
+}
+
+/* --- Widget manager dialog --- */
+.light-theme .desktop-widget-manager-heading {
+    color: rgba(0, 0, 0, 0.90);
+}
+
+.light-theme .desktop-widget-manager-description {
+    color: rgba(0, 0, 0, 0.58);
+}
+
+.light-theme .desktop-widget-manager-card {
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.light-theme .desktop-widget-manager-preview {
+    background-color: rgba(0, 0, 0, 0.07);
+}
+
+.light-theme .desktop-widget-manager-preview-empty {
+    color: rgba(0, 0, 0, 0.48);
+}
+
+.light-theme .desktop-widget-manager-title {
+    color: rgba(0, 0, 0, 0.85);
+}
+
+.light-theme .desktop-widget-manager-switch-track {
+    background-color: rgba(0, 0, 0, 0.18);
+}
+
+.light-theme .desktop-widget-manager-empty {
+    color: rgba(0, 0, 0, 0.55);
+}
+
+/* --- Desktop item label (uses text-shadow for readability,
+       in light mode we remove the dark shadow) --- */
+.light-theme .desktop-item-label {
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.80);
+    color: rgba(0, 0, 0, 0.88);
 }

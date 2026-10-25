@@ -30,10 +30,12 @@ class CalendarWidget extends BaseWidget {
         this.setCard(this._card);
 
         this._updateDate();
-        this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 60, () => {
-            this._updateDate();
-            return GLib.SOURCE_CONTINUE;
-        });
+        if (!this.isPreview) {
+            this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 60, () => {
+                this._updateDate();
+                return GLib.SOURCE_CONTINUE;
+            });
+        }
 
         this.connect('destroy', () => {
             if (this._timeoutId) {
@@ -318,5 +320,13 @@ class CalendarWidget extends BaseWidget {
 });
 
 export const WIDGET_CONFIG = { colSpan: 2, rowSpan: 2, minColSpan: 2, maxColSpan: 6, minRowSpan: 2, maxRowSpan: 4 };
-export const WIDGET_NAME = _('Calendar');
-export const WIDGET_DESCRIPTION = _('Current date and monthly grid.');
+
+export function getWidgetMetadata() {
+    return {
+        name: _('Calendar'),
+        description: _('Current date and monthly grid.'),
+    };
+}
+
+export const WIDGET_NAME = 'Calendar';
+export const WIDGET_DESCRIPTION = 'Current date and monthly grid.';

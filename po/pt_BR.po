@@ -592,10 +592,6 @@ msgstr "Pancadas de neve"
 msgid "Spacing"
 msgstr "Espaçamento"
 
-#: prefs.js:31
-msgid "Square cells (symmetric)"
-msgstr "Células quadradas (simétricas)"
-
 #: prefs.js:89
 msgid "Static blur for all widgets"
 msgstr "Desfoque estático em todos os widgets"
@@ -611,10 +607,6 @@ msgstr "Armazenamento"
 #: widgets/clockWidget.js:13
 msgid "Sydney"
 msgstr "Sydney"
-
-#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:21
-msgid "Symmetric square grid cells"
-msgstr "Células quadradas e simétricas"
 
 #: widgets/systemWidget.js:150
 msgid "System"

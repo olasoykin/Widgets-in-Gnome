@@ -43,20 +43,15 @@ export class BlurManager {
         this._staticRefreshId = 0;
         this._scaleSignalId = 0;
 
-        import('resource:///org/gnome/shell/ui/main.js').then(MainModule => {
-            if (this._destroyed) return;
-            this._main = MainModule;
-            this._extChangedId = MainModule.extensionManager?.connect(
-                'extension-state-changed',
-                (mgr, ext) => {
-                    if (ext.uuid === 'blur-my-shell@aunetx') {
-                        this.refresh();
-                    }
+        this._main = Main;
+        this._extChangedId = Main.extensionManager?.connect(
+            'extension-state-changed',
+            (_mgr, ext) => {
+                if (ext.uuid === 'blur-my-shell@aunetx') {
+                    this.refresh();
                 }
-            );
-        }).catch(error => {
-            console.warn('[Widgets Blur] No se pudo observar el estado de extensiones:', error);
-        });
+            }
+        ) ?? null;
 
         this.apply();
     }

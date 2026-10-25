@@ -95,5 +95,12 @@ export const WIDGET_CONFIG = {
     maxRowSpan: 4,
 };
 
-export const WIDGET_NAME = _('Prototype widget');
-export const WIDGET_DESCRIPTION = _('Shows widget size and editing instructions.');
+export function getWidgetMetadata() {
+    return {
+        name: _('Prototype widget'),
+        description: _('Shows widget size and editing instructions.'),
+    };
+}
+
+export const WIDGET_NAME = 'Prototype widget';
+export const WIDGET_DESCRIPTION = 'Shows widget size and editing instructions.';

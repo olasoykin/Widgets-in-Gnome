@@ -7,8 +7,7 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { BaseWidget, configureWidgetCaption } from '../core/baseWidget.js';
 import { createIcon } from '../core/icons.js';
-
-const EMPTY_HINT = _('Edit the notes file to see them here');
+import { readTextFileAsync, writeTextFileAsync } from '../core/asyncUtils.js';
 
 function _escapeMarkup(text) {
     return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -43,9 +42,9 @@ export const Widget = GObject.registerClass(
 class NotesWidget extends BaseWidget {
     _init(params = {}) {
         super._init({
-            ...params,
             colSpan: params.colSpan ?? 2,
             rowSpan: params.rowSpan ?? 2,
+            ...params,
         });
 
         this._notesPath = GLib.build_filenamev([
@@ -54,12 +53,22 @@ class NotesWidget extends BaseWidget {
             'notes.txt',
         ]);
 
-        this._buildUI();
+        this._cancellable = new Gio.Cancellable();
         this._monitorChangedId = 0;
+        this._debounceId = 0;
+
+        this._buildUI();
         this._loadNotes();
-        this._watchNotesFile();
+        if (!this.isPreview) {
+            this._watchNotesFile();
+        }
 
         this.connect('destroy', () => {
+            this._cancellable.cancel();
+            if (this._debounceId) {
+                GLib.source_remove(this._debounceId);
+                this._debounceId = 0;
+            }
             if (this._monitor) {
                 if (this._monitorChangedId) {
                     this._monitor.disconnect(this._monitorChangedId);
@@ -136,13 +145,21 @@ class NotesWidget extends BaseWidget {
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.START,
         };
-        if (!markup) params.text = text;
         const label = new St.Label(params);
         const clutterText = label.get_clutter_text();
         clutterText.line_wrap = true;
         clutterText.line_wrap_mode = Pango.WrapMode.WORD_CHAR;
         clutterText.ellipsize = Pango.EllipsizeMode.NONE;
-        if (markup) clutterText.set_markup(_formatNoteMarkup(text));
+
+        if (markup) {
+            try {
+                clutterText.set_markup(_formatNoteMarkup(text));
+            } catch {
+                clutterText.set_text(text);
+            }
+        } else {
+            clutterText.set_text(text);
+        }
         return label;
     }
 
@@ -150,7 +167,7 @@ class NotesWidget extends BaseWidget {
         this._notesList.destroy_all_children();
         const notes = _parseNotes(text);
         if (notes.length === 0) {
-            const emptyLabel = this._createNoteLabel(EMPTY_HINT, 'widget-notes-text widget-notes-empty');
+            const emptyLabel = this._createNoteLabel(_('Edit the notes file to see them here'), 'widget-notes-text widget-notes-empty');
             this._notesList.add_child(emptyLabel);
             return;
         }
@@ -172,18 +189,17 @@ class NotesWidget extends BaseWidget {
         }
     }
 
-    _loadNotes() {
+    async _loadNotes() {
         try {
             const file = Gio.File.new_for_path(this._notesPath);
             if (!file.query_exists(null)) {
-                GLib.mkdir_with_parents(GLib.path_get_dirname(this._notesPath), 0o700);
-                file.replace_contents('', null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+                await writeTextFileAsync(this._notesPath, '', this._cancellable);
                 this._renderNotes('');
                 return;
             }
 
-            const [, contents] = file.load_contents(null);
-            this._renderNotes(new TextDecoder().decode(contents).trim());
+            const content = await readTextFileAsync(this._notesPath, this._cancellable);
+            this._renderNotes(content.trim());
         } catch (error) {
             this._renderNotes(_('Could not read the notes file'));
             console.warn(`[Widgets] Notes: ${error.message}`);
@@ -194,7 +210,14 @@ class NotesWidget extends BaseWidget {
         try {
             const file = Gio.File.new_for_path(this._notesPath);
             this._monitor = file.monitor_file(Gio.FileMonitorFlags.NONE, null);
-            this._monitorChangedId = this._monitor.connect('changed', () => this._loadNotes());
+            this._monitorChangedId = this._monitor.connect('changed', () => {
+                if (this._debounceId) GLib.source_remove(this._debounceId);
+                this._debounceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
+                    this._debounceId = 0;
+                    this._loadNotes();
+                    return GLib.SOURCE_REMOVE;
+                });
+            });
         } catch (error) {
             console.warn(`[Widgets] Could not monitor notes: ${error.message}`);
         }
@@ -202,5 +225,13 @@ class NotesWidget extends BaseWidget {
 });
 
 export const WIDGET_CONFIG = { colSpan: 2, rowSpan: 3 };
-export const WIDGET_NAME = _('Notes');
-export const WIDGET_DESCRIPTION = _('Quick notes from ~/config/widgets@kin/notes.txt.');
+
+export function getWidgetMetadata() {
+    return {
+        name: _('Notes'),
+        description: _('Quick notes from ~/.config/widgets@kin/notes.txt.'),
+    };
+}
+
+export const WIDGET_NAME = 'Notes';
+export const WIDGET_DESCRIPTION = 'Quick notes from ~/.config/widgets@kin/notes.txt.';

@@ -600,10 +600,6 @@ msgstr ""
 msgid "Spacing"
 msgstr ""
 
-#: prefs.js:31
-msgid "Square cells (symmetric)"
-msgstr ""
-
 #: prefs.js:89
 msgid "Static blur for all widgets"
 msgstr ""
@@ -618,10 +614,6 @@ msgstr ""
 
 #: widgets/clockWidget.js:13
 msgid "Sydney"
-msgstr ""
-
-#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:21
-msgid "Symmetric square grid cells"
 msgstr ""
 
 #: widgets/systemWidget.js:150

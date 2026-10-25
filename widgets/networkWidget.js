@@ -2,10 +2,12 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import NM from 'gi://NM';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { BaseWidget, configureWidgetCaption } from '../core/baseWidget.js';
 import { createIcon } from '../core/icons.js';
+import { readTextFileAsync } from '../core/asyncUtils.js';
 
 const REFRESH_SECONDS = 3;
 
@@ -21,9 +23,9 @@ export const Widget = GObject.registerClass(
 class NetworkWidget extends BaseWidget {
     _init(params = {}) {
         super._init({
-            ...params,
             colSpan: params.colSpan ?? 2,
             rowSpan: params.rowSpan ?? 2,
+            ...params,
         });
 
         this._lastRenderedTier = null;
@@ -34,10 +36,18 @@ class NetworkWidget extends BaseWidget {
         this._activeType = '';
         this._activeDevice = '';
         this._localIp = '';
-        this._ipCounter = 0;
         this._destroyed = false;
         this._updateInFlight = false;
-        this._commandCancellable = new Gio.Cancellable();
+        this._cancellable = new Gio.Cancellable();
+        this._nmClient = null;
+
+        this._typeLabel = null;
+        this._nameLabel = null;
+        this._ipLabel = null;
+        this._downBadge = null;
+        this._upBadge = null;
+        this._ifaceBadge = null;
+        this._detailLabel = null;
 
         this._card = new St.BoxLayout({
             style_class: 'widget-card widget-common-card',
@@ -50,33 +60,47 @@ class NetworkWidget extends BaseWidget {
         });
         this.setCard(this._card);
 
-        this._updateNetwork();
-        this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, REFRESH_SECONDS, () => {
-            this._updateNetwork();
-            return GLib.SOURCE_CONTINUE;
-        });
+        this._rebuildUI(this.sizeTier);
+        this._initNetworkMonitoring();
 
         this.connect('destroy', () => {
             this._destroyed = true;
-            this._commandCancellable.cancel();
+            this._cancellable.cancel();
             if (this._timeoutId) {
                 GLib.source_remove(this._timeoutId);
                 this._timeoutId = 0;
             }
+            this._nmClient = null;
         });
     }
 
     onGeometryChanged() {
         if (this._lastRenderedTier !== this.sizeTier) {
-            this._render();
+            this._rebuildUI(this.sizeTier);
+            this._updateUI();
             this.refreshAdaptiveLabels();
         }
     }
 
-    _readNetDev() {
+    _initNetworkMonitoring() {
         try {
-            const [, contents] = Gio.File.new_for_path('/proc/net/dev').load_contents(null);
-            const text = new TextDecoder().decode(contents);
+            this._nmClient = NM.Client.new(this._cancellable);
+        } catch {
+            this._nmClient = null;
+        }
+
+        this._updateNetwork();
+        if (!this.isPreview) {
+            this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, REFRESH_SECONDS, () => {
+                this._updateNetwork();
+                return GLib.SOURCE_CONTINUE;
+            });
+        }
+    }
+
+    async _readNetDev() {
+        try {
+            const text = await readTextFileAsync('/proc/net/dev', this._cancellable);
             let rxTotal = 0;
             let txTotal = 0;
 
@@ -91,38 +115,61 @@ class NetworkWidget extends BaseWidget {
                     txTotal += tx;
                 }
             }
-            return { rx: rxTotal, tx: txTotal, time: GLib.get_monotonic_time() / 1000000 };
-        } catch (_error) {
+
+            return {
+                rx: rxTotal,
+                tx: txTotal,
+                time: GLib.get_monotonic_time() / 1000000,
+            };
+        } catch {
             return null;
         }
     }
 
-    _runCommand(argv) {
-        return new Promise(resolve => {
-            try {
-                const proc = Gio.Subprocess.new(
-                    argv,
-                    Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
-                );
-                proc.communicate_utf8_async(null, this._commandCancellable, (p, result) => {
-                    try {
-                        const [, stdout] = p.communicate_utf8_finish(result);
-                        resolve(p.get_successful() ? (stdout ?? '') : '');
-                    } catch (_error) {
-                        resolve('');
-                    }
-                });
-            } catch (_error) {
-                resolve('');
+    _updateNMInfo() {
+        if (!this._nmClient) return;
+
+        try {
+            const activeCons = this._nmClient.get_active_connections() ?? [];
+            let active = activeCons.find(c => c.connection_type !== 'loopback' && c.state === NM.ActiveConnectionState.ACTIVATED);
+            if (!active) active = activeCons.find(c => c.connection_type !== 'loopback') ?? activeCons[0];
+
+            if (active) {
+                this._activeName = active.id || _('Connected');
+                const rawType = active.connection_type ?? '';
+                const typeLabels = {
+                    '802-11-wireless': 'Wi-Fi',
+                    '802-3-ethernet': _('Ethernet'),
+                    gsm: _('Mobile'),
+                    vpn: 'VPN',
+                    bluetooth: 'Bluetooth',
+                };
+                this._activeType = typeLabels[rawType] ?? (rawType || '');
+
+                const devices = active.get_devices() ?? [];
+                this._activeDevice = devices[0]?.get_iface() ?? '';
+
+                const ipConfig = active.get_ip4_config();
+                const addrs = ipConfig?.get_addresses() ?? [];
+                const ipList = addrs.map(a => a.get_address()).filter(Boolean);
+                this._localIp = ipList.length > 0 ? ipList.join(' · ') : _('No IP address');
+            } else {
+                this._activeName = _('No connection');
+                this._activeType = '';
+                this._activeDevice = '';
+                this._localIp = _('No IP address');
             }
-        });
+        } catch {}
     }
 
     async _updateNetwork() {
         if (this._destroyed || this._updateInFlight) return;
         this._updateInFlight = true;
+
         try {
-            const currentNet = this._readNetDev();
+            const currentNet = await this._readNetDev();
+            if (this._destroyed) return;
+
             if (currentNet && this._lastNetBytes) {
                 const dt = Math.max(0.1, currentNet.time - this._lastNetBytes.time);
                 this._downloadSpeed = Math.max(0, (currentNet.rx - this._lastNetBytes.rx) / dt);
@@ -130,69 +177,15 @@ class NetworkWidget extends BaseWidget {
             }
             this._lastNetBytes = currentNet;
 
-            this._ipCounter++;
-            if (this._ipCounter % 2 === 1 || !this._localIp) {
-                const [names, types, devices, ip] = await Promise.all([
-                    this._runCommand(['nmcli', '-t', '-f', 'NAME', 'connection', 'show', '--active']),
-                    this._runCommand(['nmcli', '-t', '-f', 'TYPE', 'connection', 'show', '--active']),
-                    this._runCommand(['nmcli', '-t', '-f', 'DEVICE', 'connection', 'show', '--active']),
-                    this._runCommand(['ip', '-json', 'address', 'show', 'scope', 'global']),
-                ]);
-                if (this._destroyed) return;
-
-                const nameList = names.split('\n').map(s => s.trim()).filter(Boolean);
-                const typeList = types.split('\n').map(s => s.trim()).filter(Boolean);
-                const deviceList = devices.split('\n').map(s => s.trim()).filter(Boolean);
-
-                let index = typeList.findIndex(t => t !== 'loopback');
-                if (index < 0) index = 0;
-
-                const typeLabels = {
-                    wifi: 'Wi-Fi',
-                    '802-11-wireless': 'Wi-Fi',
-                    '802-3-ethernet': _('Ethernet'),
-                    gsm: _('Mobile'),
-                    cdma: _('Mobile'),
-                    vpn: 'VPN',
-                    bluetooth: 'Bluetooth',
-                };
-
-                const rawType = typeList[index] ?? '';
-                this._activeType = typeLabels[rawType] ?? (rawType || '');
-                this._activeName = nameList[index] || _('No connection');
-                this._activeDevice = deviceList[index] ?? '';
-                this._localIp = this._parseGlobalIp(ip) || _('No IP address');
-            }
-
-            if (!this._destroyed) this._render();
-        } catch (_error) {
+            this._updateNMInfo();
+            if (!this._destroyed) this._updateUI();
         } finally {
             this._updateInFlight = false;
         }
     }
 
-    _parseGlobalIp(json) {
-        try {
-            const interfaces = JSON.parse(json);
-            const addresses = [];
-            for (const iface of interfaces) {
-                for (const addr of iface.addr_info ?? []) {
-                    if (addr.family === 'inet' && addr.scope === 'global') {
-                        const prefix = addr.prefixlen ? `/${addr.prefixlen}` : '';
-                        addresses.push(`${addr.local}${prefix}`);
-                    }
-                }
-            }
-            return addresses.join(' · ');
-        } catch (_error) {
-            return '';
-        }
-    }
-
-    _render() {
-        const tier = this.sizeTier;
+    _rebuildUI(tier) {
         this._lastRenderedTier = tier;
-
         this._card.destroy_all_children();
 
         const contentBox = new St.BoxLayout({
@@ -216,14 +209,14 @@ class NetworkWidget extends BaseWidget {
             x_expand: true,
             x_align: Clutter.ActorAlign.START,
         }));
-        const typeLabel = new St.Label({
-            text: this._activeType,
+        this._typeLabel = new St.Label({
+            text: '',
             style_class: 'widget-header-side',
             x_align: Clutter.ActorAlign.END,
         });
         header.add_child(createIcon('wifi', 14));
         header.add_child(caption);
-        header.add_child(typeLabel);
+        header.add_child(this._typeLabel);
         contentBox.add_child(header);
 
         if (tier === 'medium' || tier === 'large') {
@@ -243,17 +236,16 @@ class NetworkWidget extends BaseWidget {
                 y_align: Clutter.ActorAlign.CENTER,
             });
 
-            const nameLabel = new St.Label({
-                text: this._activeName,
+            this._nameLabel = new St.Label({
+                text: '',
                 style_class: 'widget-common-value',
             });
-            const ipLabel = new St.Label({
-                text: this._localIp,
+            this._ipLabel = new St.Label({
+                text: '',
                 style_class: 'widget-common-detail',
             });
-
-            leftCol.add_child(nameLabel);
-            leftCol.add_child(ipLabel);
+            leftCol.add_child(this._nameLabel);
+            leftCol.add_child(this._ipLabel);
 
             const rightCol = new St.BoxLayout({
                 orientation: Clutter.Orientation.VERTICAL,
@@ -263,52 +255,72 @@ class NetworkWidget extends BaseWidget {
                 y_align: Clutter.ActorAlign.CENTER,
             });
 
-            const downBadge = new St.Label({
-                text: `↓ ${formatSpeed(this._downloadSpeed)}`,
+            this._downBadge = new St.Label({
+                text: '',
                 style_class: 'widget-network-speed-badge',
             });
-            const upBadge = new St.Label({
-                text: `↑ ${formatSpeed(this._uploadSpeed)}`,
+            this._upBadge = new St.Label({
+                text: '',
                 style_class: 'widget-network-speed-badge',
             });
-            const ifaceBadge = new St.Label({
-                text: `${_('Interface')}: ${this._activeDevice || '—'}`,
+            this._ifaceBadge = new St.Label({
+                text: '',
                 style_class: 'widget-system-detail-pill',
             });
 
-            rightCol.add_child(downBadge);
-            rightCol.add_child(upBadge);
-            rightCol.add_child(ifaceBadge);
+            rightCol.add_child(this._downBadge);
+            rightCol.add_child(this._upBadge);
+            rightCol.add_child(this._ifaceBadge);
 
             splitRow.add_child(leftCol);
             splitRow.add_child(rightCol);
             contentBox.add_child(splitRow);
         } else {
-            const nameLabel = new St.Label({
-                text: this._activeName,
+            this._nameLabel = new St.Label({
+                text: '',
                 style_class: 'widget-common-value',
                 x_expand: true,
             });
-            const ipLabel = new St.Label({
-                text: this._localIp,
+            this._ipLabel = new St.Label({
+                text: '',
                 style_class: 'widget-common-detail',
                 x_align: Clutter.ActorAlign.START,
             });
-            const detailLabel = new St.Label({
-                text: this._activeDevice ? `${_('Interface')} ${this._activeDevice}` : '',
+            this._detailLabel = new St.Label({
+                text: '',
                 style_class: 'widget-network-detail',
                 x_align: Clutter.ActorAlign.START,
             });
 
-            contentBox.add_child(nameLabel);
-            contentBox.add_child(ipLabel);
-            contentBox.add_child(detailLabel);
+            contentBox.add_child(this._nameLabel);
+            contentBox.add_child(this._ipLabel);
+            contentBox.add_child(this._detailLabel);
         }
 
         this._card.add_child(contentBox);
     }
+
+    _updateUI() {
+        if (this._typeLabel) this._typeLabel.text = this._activeType;
+        if (this._nameLabel) this._nameLabel.text = this._activeName;
+        if (this._ipLabel) this._ipLabel.text = this._localIp;
+        if (this._downBadge) this._downBadge.text = `↓ ${formatSpeed(this._downloadSpeed)}`;
+        if (this._upBadge) this._upBadge.text = `↑ ${formatSpeed(this._uploadSpeed)}`;
+        if (this._ifaceBadge) this._ifaceBadge.text = `${_('Interface')}: ${this._activeDevice || '—'}`;
+        if (this._detailLabel) {
+            this._detailLabel.text = this._activeDevice ? `${_('Interface')} ${this._activeDevice}` : '';
+        }
+    }
 });
 
 export const WIDGET_CONFIG = { colSpan: 2, rowSpan: 2, minColSpan: 2, maxColSpan: 6, minRowSpan: 2, maxRowSpan: 4 };
-export const WIDGET_NAME = _('Network');
-export const WIDGET_DESCRIPTION = _('Active connection, local IP, and network speed.');
+
+export function getWidgetMetadata() {
+    return {
+        name: _('Network'),
+        description: _('Active connection, local IP, and network speed.'),
+    };
+}
+
+export const WIDGET_NAME = 'Network';
+export const WIDGET_DESCRIPTION = 'Active connection, local IP, and network speed.';

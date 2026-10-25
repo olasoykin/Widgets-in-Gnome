@@ -10,15 +10,20 @@ import { Grid } from './core/grid.js';
 import { DesktopItem, dismissActiveContextMenuAt } from './core/desktopItem.js';
 import { GridOverlay } from './ui/gridOverlay.js';
 import { registerFonts, unregisterFonts } from './core/fontLoader.js';
+import { readJsonFileAsync, trashFileAsync, writeJsonFileAsync } from './core/asyncUtils.js';
 
 export default class WidgetsExtension extends Extension {
     enable() {
+        this.initTranslations();
         registerFonts(this.path);
         this._settings = this.getSettings();
         this._settingsSignals = [];
         this._widgets = [];
         this._pluginWidgets = [];
         this._desktopItems = [];
+        this._selectedDesktopItems = new Set();
+        this._selectionBand = null;
+        this._selectionStart = null;
         this._widgetCatalog = [];
         this._desktopMenu = null;
         this._desktopMenuAnchor = null;
@@ -29,8 +34,8 @@ export default class WidgetsExtension extends Extension {
         this._widgetManagerPreviewSourceId = 0;
         this._widgetsLoaded = false;
         this._widgetLoadGeneration = 0;
-        this._desktopPositions = this._loadDesktopPositions();
-        this._widgetPositions = this._loadWidgetPositions();
+        this._desktopPositions = {};
+        this._widgetPositions = {};
 
         const monitor = Main.layoutManager.primaryMonitor;
         const topOffset = Main.panel ? Main.panel.height : 36;
@@ -48,7 +53,7 @@ export default class WidgetsExtension extends Extension {
             },
         });
 
-        this._container = new Clutter.Actor({
+        this._container = new St.Widget({
             layout_manager: new Clutter.FixedLayout(),
             // This actor receives clicks only on the empty desktop. Reactive child
             // widgets and desktop items remain the event targets above it.
@@ -57,10 +62,28 @@ export default class WidgetsExtension extends Extension {
         const [stageWidth, stageHeight] = global.stage.get_size();
         this._container.set_size(stageWidth, stageHeight);
         this._container.connect('button-press-event', (_actor, event) => {
-            if (event.get_button() !== 3) return Clutter.EVENT_PROPAGATE;
+            const button = event.get_button();
+            if (button === 1) {
+                const [x, y] = event.get_coords();
+                this._startDesktopSelection(x, y, event.get_state());
+                return Clutter.EVENT_STOP;
+            }
+            if (button !== 3) return Clutter.EVENT_PROPAGATE;
 
             const [x, y] = event.get_coords();
             this._showDesktopMenu(x, y);
+            return Clutter.EVENT_STOP;
+        });
+        this._container.connect('motion-event', (_actor, event) => {
+            if (!this._selectionStart) return Clutter.EVENT_PROPAGATE;
+            const [x, y] = event.get_coords();
+            this._updateDesktopSelection(x, y);
+            return Clutter.EVENT_STOP;
+        });
+        this._container.connect('button-release-event', (_actor, event) => {
+            if (event.get_button() !== 1 || !this._selectionStart) return Clutter.EVENT_PROPAGATE;
+            const [x, y] = event.get_coords();
+            this._finishDesktopSelection(x, y);
             return Clutter.EVENT_STOP;
         });
 
@@ -76,7 +99,28 @@ export default class WidgetsExtension extends Extension {
 
         this._bindSettings();
         this._bindMonitors();
+        this._bindColorScheme();
         this._stageEventId = global.stage.connect('captured-event', (actor, event) => {
+            if (event.type() === Clutter.EventType.KEY_PRESS) {
+                if (Main.modalCount > 0) return Clutter.EVENT_PROPAGATE;
+                const focus = global.stage.get_key_focus();
+                const desktopHasFocus = !focus || focus === this._container ||
+                    this._desktopItems.includes(focus);
+                if (!desktopHasFocus) return Clutter.EVENT_PROPAGATE;
+
+                const key = event.get_key_symbol();
+                const state = event.get_state();
+                if ((state & Clutter.ModifierType.CONTROL_MASK) && key === Clutter.KEY_a) {
+                    this._selectAllDesktopItems();
+                    return Clutter.EVENT_STOP;
+                }
+                if (this._selectedDesktopItems.size > 0 &&
+                    (key === Clutter.KEY_Delete || key === Clutter.KEY_KP_Delete)) {
+                    this._trashSelectedDesktopItems();
+                    return Clutter.EVENT_STOP;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            }
             if (event.type() !== Clutter.EventType.BUTTON_PRESS) return Clutter.EVENT_PROPAGATE;
 
             const button = event.get_button();
@@ -114,6 +158,12 @@ export default class WidgetsExtension extends Extension {
 
             return Clutter.EVENT_PROPAGATE;
         });
+        this._initDesktopAndWidgets();
+    }
+
+    async _initDesktopAndWidgets() {
+        this._desktopPositions = (await readJsonFileAsync(this._getDesktopPositionsPath())) ?? {};
+        this._widgetPositions = (await readJsonFileAsync(this._getWidgetPositionsPath())) ?? {};
         this._loadDesktopItems();
         this._watchDesktopDirectory();
         this._loadWidgets();
@@ -123,6 +173,87 @@ export default class WidgetsExtension extends Extension {
         const path = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP) ??
             GLib.build_filenamev([GLib.get_home_dir(), 'Desktop']);
         return Gio.File.new_for_path(path);
+    }
+
+    _setDesktopItemSelection(items) {
+        this._selectedDesktopItems = new Set(items);
+        for (const item of this._desktopItems) {
+            item.setSelected(this._selectedDesktopItems.has(item));
+        }
+    }
+
+    _selectDesktopItem(item, state, rightClick = false) {
+        const selected = new Set(this._selectedDesktopItems);
+        const controlPressed = (state & Clutter.ModifierType.CONTROL_MASK) !== 0;
+        if (rightClick) {
+            if (!selected.has(item)) this._setDesktopItemSelection([item]);
+        } else if (controlPressed) {
+            if (selected.has(item)) selected.delete(item);
+            else selected.add(item);
+            this._setDesktopItemSelection(selected);
+        } else if (!selected.has(item) || selected.size > 1) {
+            this._setDesktopItemSelection([item]);
+        }
+    }
+
+    _selectAllDesktopItems() {
+        this._setDesktopItemSelection(this._desktopItems);
+    }
+
+    _trashSelectedDesktopItems() {
+        const items = [...this._selectedDesktopItems];
+        for (const item of items) {
+            trashFileAsync(item.file).catch(error => {
+                console.error(`[Widgets] Could not move to trash: ${error.message}`);
+            });
+        }
+        this._setDesktopItemSelection([]);
+    }
+
+    _startDesktopSelection(x, y, state) {
+        this._selectionStart = { x, y };
+        this._selectionAdditive = (state & Clutter.ModifierType.CONTROL_MASK) !== 0;
+        if (!this._selectionAdditive) this._setDesktopItemSelection([]);
+        if (!this._selectionBand) {
+            this._selectionBand = new St.Widget({
+                style_class: 'desktop-selection-band',
+                reactive: false,
+                visible: false,
+            });
+            this._container.add_child(this._selectionBand);
+        }
+        this._selectionBand.set_position(x, y);
+        this._selectionBand.set_size(0, 0);
+        this._selectionBand.show();
+    }
+
+    _updateDesktopSelection(x, y) {
+        const left = Math.min(this._selectionStart.x, x);
+        const top = Math.min(this._selectionStart.y, y);
+        const width = Math.abs(x - this._selectionStart.x);
+        const height = Math.abs(y - this._selectionStart.y);
+        this._selectionBand.set_position(left, top);
+        this._selectionBand.set_size(width, height);
+    }
+
+    _finishDesktopSelection(x, y) {
+        this._updateDesktopSelection(x, y);
+        const left = Math.min(this._selectionStart.x, x);
+        const top = Math.min(this._selectionStart.y, y);
+        const right = Math.max(this._selectionStart.x, x);
+        const bottom = Math.max(this._selectionStart.y, y);
+        const selected = this._selectionAdditive ? new Set(this._selectedDesktopItems) : new Set();
+        for (const item of this._desktopItems) {
+            const [itemX, itemY] = item.get_transformed_position();
+            const [itemWidth, itemHeight] = item.get_transformed_size();
+            if (itemX + itemWidth >= left && itemX <= right &&
+                itemY + itemHeight >= top && itemY <= bottom) {
+                selected.add(item);
+            }
+        }
+        this._setDesktopItemSelection(selected);
+        this._selectionStart = null;
+        this._selectionBand.hide();
     }
 
     _showDesktopMenu(x, y) {
@@ -145,6 +276,7 @@ export default class WidgetsExtension extends Extension {
         menu.addAction(_('Change Background…'), () => this._launchControlCenter('background'));
         menu.addAction(_('Display Settings'), () => this._launchControlCenter('display'));
         menu.addAction(_('New Folder'), () => this._createDesktopFolder());
+        menu.addAction(_('Select All'), () => this._selectAllDesktopItems());
         menu.addAction(_('Open Desktop Folder'), () => {
             Gio.AppInfo.launch_default_for_uri(this._getDesktopDirectory().get_uri(), null);
         });
@@ -431,6 +563,7 @@ export default class WidgetsExtension extends Extension {
                 colSpan,
                 rowSpan,
                 resizable: false,
+                isPreview: true,
             });
             this._widgetManagerPreviewWidgets.push(previewWidget);
             const previewScale = Math.min(
@@ -502,27 +635,16 @@ export default class WidgetsExtension extends Extension {
         ]);
     }
 
-    _loadDesktopPositions() {
+    async _saveDesktopPositions() {
         try {
-            const [ok, contents] = GLib.file_get_contents(this._getDesktopPositionsPath());
-            return ok ? JSON.parse(new TextDecoder().decode(contents)) : {};
-        } catch (_error) {
-            return {};
-        }
-    }
-
-    _saveDesktopPositions() {
-        try {
-            const path = this._getDesktopPositionsPath();
-            GLib.mkdir_with_parents(GLib.path_get_dirname(path), 0o700);
             const positions = {};
             for (const item of this._desktopItems) {
                 positions[item.file.get_uri()] = { col: item.col, row: item.row };
             }
-            GLib.file_set_contents(path, JSON.stringify(positions));
             this._desktopPositions = positions;
+            await writeJsonFileAsync(this._getDesktopPositionsPath(), positions);
         } catch (error) {
-            console.error(`[Widgets] No se pudieron guardar posiciones: ${error.message}`);
+            console.error(`[Widgets] Could not save desktop positions: ${error.message}`);
         }
     }
 
@@ -534,20 +656,9 @@ export default class WidgetsExtension extends Extension {
         ]);
     }
 
-    _loadWidgetPositions() {
-        try {
-            const [ok, contents] = GLib.file_get_contents(this._getWidgetPositionsPath());
-            return ok ? JSON.parse(new TextDecoder().decode(contents)) : {};
-        } catch (_error) {
-            return {};
-        }
-    }
-
-    _saveWidgetPositions() {
+    async _saveWidgetPositions() {
         if (!this._widgetsLoaded) return;
         try {
-            const path = this._getWidgetPositionsPath();
-            GLib.mkdir_with_parents(GLib.path_get_dirname(path), 0o700);
             const positions = { ...(this._widgetPositions ?? {}) };
             for (const widget of this._pluginWidgets) {
                 if (widget.widgetId) {
@@ -559,10 +670,10 @@ export default class WidgetsExtension extends Extension {
                     };
                 }
             }
-            GLib.file_set_contents(path, JSON.stringify(positions));
             this._widgetPositions = positions;
+            await writeJsonFileAsync(this._getWidgetPositionsPath(), positions);
         } catch (error) {
-            console.error(`[Widgets] No se pudieron guardar posiciones de widgets: ${error.message}`);
+            console.error(`[Widgets] Could not save widget positions: ${error.message}`);
         }
     }
 
@@ -591,6 +702,7 @@ export default class WidgetsExtension extends Extension {
         const existing = new Map(this._desktopItems.map(item => [item.file.get_uri(), item]));
         for (const [uri, item] of existing) {
             if (!found.has(uri)) {
+                this._selectedDesktopItems.delete(item);
                 this._desktopItems = this._desktopItems.filter(candidate => candidate !== item);
                 this._widgets = this._widgets.filter(candidate => candidate !== item);
                 item.destroy();
@@ -620,6 +732,19 @@ export default class WidgetsExtension extends Extension {
                 name: entry.info.get_display_name(),
                 icon,
                 onPositionChanged: () => this._saveDesktopPositions(),
+                onSelectionRequested: (selectedItem, state, rightClick) => {
+                    this._selectDesktopItem(selectedItem, state, rightClick);
+                },
+                getSelectedItems: () => [...this._selectedDesktopItems],
+                onSelectAll: () => this._selectAllDesktopItems(),
+                onTrashItems: items => {
+                    for (const selectedItem of items) {
+                        trashFileAsync(selectedItem.file).catch(error => {
+                            console.error(`[Widgets] Could not move to trash: ${error.message}`);
+                        });
+                    }
+                    this._setDesktopItemSelection([]);
+                },
             });
             item.widgetId = `desktop:${uri}`;
             this._desktopItems.push(item);
@@ -683,9 +808,11 @@ export default class WidgetsExtension extends Extension {
                     continue;
                 }
 
+                const meta = typeof module.getWidgetMetadata === 'function' ? module.getWidgetMetadata() : null;
                 const entry = {
                     filename,
-                    name: module.WIDGET_NAME ?? filename.replace(/\.js$/, ''),
+                    name: meta?.name ?? module.WIDGET_NAME ?? filename.replace(/\.js$/, ''),
+                    description: meta?.description ?? module.WIDGET_DESCRIPTION ?? '',
                     Widget: module.Widget,
                     config: module.WIDGET_CONFIG ?? {},
                 };
@@ -825,7 +952,7 @@ export default class WidgetsExtension extends Extension {
             }
         };
 
-        const keys = ['rows', 'columns', 'gap', 'symmetric-grid'];
+        const keys = ['rows', 'columns', 'gap'];
         for (const key of keys) {
             const id = this._settings.connect(`changed::${key}`, updateGrid);
             this._settingsSignals.push(id);
@@ -863,6 +990,72 @@ export default class WidgetsExtension extends Extension {
         for (const widget of this._pluginWidgets) {
             widget.setBlurEnabled(this._settings.get_boolean('enable-blur'));
             widget.setStaticBlurEnabled(globalStaticBlur);
+        }
+    }
+
+    _bindColorScheme() {
+        const schemeId = this._settings.connect('changed::color-scheme', () => {
+            this._updateColorScheme();
+        });
+        this._settingsSignals.push(schemeId);
+
+        // Watch system interface settings: color-scheme AND gtk-theme as fallback
+        try {
+            this._desktopSettings = new Gio.Settings({
+                schema_id: 'org.gnome.desktop.interface',
+            });
+            this._desktopColorSchemeId = this._desktopSettings.connect(
+                'changed::color-scheme',
+                () => this._updateColorScheme()
+            );
+            this._desktopGtkThemeId = this._desktopSettings.connect(
+                'changed::gtk-theme',
+                () => this._updateColorScheme()
+            );
+        } catch (error) {
+            // org.gnome.desktop.interface may not be available in all environments
+            console.warn('[Widgets] Could not watch system color-scheme:', error.message);
+        }
+
+        // Apply immediately on startup
+        this._updateColorScheme();
+    }
+
+    _systemPrefersDark() {
+        if (!this._desktopSettings) return true; // assume dark if we can't read settings
+
+        // Primary signal: explicit GNOME color-scheme preference
+        const colorScheme = this._desktopSettings.get_string('color-scheme');
+        if (colorScheme === 'prefer-dark') return true;
+        if (colorScheme === 'prefer-light') return false;
+
+        // Fallback: when color-scheme is 'default' (unset), inspect the GTK theme
+        // name. Many setups signal dark mode via the name (e.g. 'adw-gtk3-dark',
+        // 'Yaru-dark', 'Adwaita-dark').
+        const gtkTheme = this._desktopSettings.get_string('gtk-theme') ?? '';
+        if (/dark/i.test(gtkTheme)) return true;
+
+        // color-scheme is 'default' and theme name has no 'dark' hint → light
+        return false;
+    }
+
+    _updateColorScheme() {
+        const preference = this._settings.get_string('color-scheme');
+
+        let useLightTheme;
+        if (preference === 'light') {
+            useLightTheme = true;
+        } else if (preference === 'dark') {
+            useLightTheme = false;
+        } else {
+            // 'auto' — follow the system heuristics
+            useLightTheme = !this._systemPrefersDark();
+        }
+
+        if (useLightTheme) {
+            this._container?.add_style_class_name('light-theme');
+        } else {
+            this._container?.remove_style_class_name('light-theme');
         }
     }
 
@@ -915,12 +1108,32 @@ export default class WidgetsExtension extends Extension {
             this._monitorsChangedId = null;
         }
 
+        if (this._desktopSettings) {
+            if (this._desktopColorSchemeId) {
+                this._desktopSettings.disconnect(this._desktopColorSchemeId);
+                this._desktopColorSchemeId = null;
+            }
+            if (this._desktopGtkThemeId) {
+                this._desktopSettings.disconnect(this._desktopGtkThemeId);
+                this._desktopGtkThemeId = null;
+            }
+            this._desktopSettings = null;
+        }
+
         if (this._settings) {
             for (const id of this._settingsSignals) {
                 this._settings.disconnect(id);
             }
             this._settingsSignals = [];
             this._settings = null;
+        }
+
+        for (const widget of this._widgets) {
+            try {
+                widget.destroy();
+            } catch (e) {
+                console.error(`[Widgets] Error destroying widget: ${e.message}`);
+            }
         }
 
         if (this._container) {
@@ -930,6 +1143,13 @@ export default class WidgetsExtension extends Extension {
 
         this._overlay = null;
         this._widgets = [];
+        this._pluginWidgets = [];
+        this._desktopItems = [];
+        this._selectedDesktopItems.clear();
+        this._selectionBand?.destroy();
+        this._selectionBand = null;
+        this._selectionStart = null;
+        this._widgetCatalog = [];
         this._grid = null;
         unregisterFonts();
     }

@@ -213,11 +213,13 @@ class MediaWidget extends BaseWidget {
         this.setCard(this._card);
 
         this._render();
-        this._watchPlayers();
-        this._timelineTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
-            this._updateTimeline();
-            return GLib.SOURCE_CONTINUE;
-        });
+        if (!this.isPreview) {
+            this._watchPlayers();
+            this._timelineTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                this._updateTimeline();
+                return GLib.SOURCE_CONTINUE;
+            });
+        }
 
         this.connect('destroy', () => {
             this._destroyed = true;
@@ -1037,6 +1039,7 @@ class MediaWidget extends BaseWidget {
 
             infoCol.add_child(titleLabel);
             infoCol.add_child(artistLabel);
+            infoCol.add_child(this._createTimeline(data.position, data.duration));
             infoCol.add_child(this._createControls(data.status, false));
 
             splitRow.add_child(coverBox);
@@ -1116,5 +1119,13 @@ class MediaWidget extends BaseWidget {
 });
 
 export const WIDGET_CONFIG = { colSpan: 4, rowSpan: 3, minColSpan: 2, maxColSpan: 6, minRowSpan: 2, maxRowSpan: 4 };
-export const WIDGET_NAME = _('Music');
-export const WIDGET_DESCRIPTION = _('Playback controls and large album artwork.');
+
+export function getWidgetMetadata() {
+    return {
+        name: _('Music'),
+        description: _('Playback controls and large album artwork.'),
+    };
+}
+
+export const WIDGET_NAME = 'Music';
+export const WIDGET_DESCRIPTION = 'Playback controls and large album artwork.';

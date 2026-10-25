@@ -7,37 +7,41 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { BaseWidget } from '../core/baseWidget.js';
 import { createIcon } from '../core/icons.js';
+import { readJsonFileAsync, writeJsonFileAsync } from '../core/asyncUtils.js';
 
-const WEATHER_CONDITIONS = {
-    0: { text: _('Clear'), icon: 'sun' },
-    1: { text: _('Mostly clear'), icon: 'sun' },
-    2: { text: _('Partly cloudy'), icon: 'cloud-sun' },
-    3: { text: _('Cloudy'), icon: 'cloud' },
-    45: { text: _('Fog'), icon: 'fog' },
-    48: { text: _('Rime fog'), icon: 'fog' },
-    51: { text: _('Light drizzle'), icon: 'cloud-rain' },
-    53: { text: _('Drizzle'), icon: 'cloud-rain' },
-    55: { text: _('Heavy drizzle'), icon: 'cloud-rain' },
-    56: { text: _('Freezing drizzle'), icon: 'cloud-rain' },
-    57: { text: _('Freezing drizzle'), icon: 'cloud-rain' },
-    61: { text: _('Light rain'), icon: 'cloud-rain' },
-    63: { text: _('Rain'), icon: 'cloud-rain' },
-    65: { text: _('Heavy rain'), icon: 'cloud-rain' },
-    66: { text: _('Freezing rain'), icon: 'cloud-rain' },
-    67: { text: _('Freezing rain'), icon: 'cloud-rain' },
-    71: { text: _('Light snow'), icon: 'snow' },
-    73: { text: _('Snow'), icon: 'snow' },
-    75: { text: _('Heavy snow'), icon: 'snow' },
-    77: { text: _('Snow grains'), icon: 'snow' },
-    80: { text: _('Light showers'), icon: 'cloud-rain' },
-    81: { text: _('Showers'), icon: 'cloud-rain' },
-    82: { text: _('Heavy showers'), icon: 'cloud-rain' },
-    85: { text: _('Snow showers'), icon: 'snow' },
-    86: { text: _('Snow showers'), icon: 'snow' },
-    95: { text: _('Thunderstorm'), icon: 'storm' },
-    96: { text: _('Thunderstorm with hail'), icon: 'storm' },
-    99: { text: _('Heavy thunderstorm'), icon: 'storm' },
-};
+function getWeatherCondition(code) {
+    const conditions = {
+        0: { text: _('Clear'), icon: 'sun' },
+        1: { text: _('Mostly clear'), icon: 'sun' },
+        2: { text: _('Partly cloudy'), icon: 'cloud-sun' },
+        3: { text: _('Cloudy'), icon: 'cloud' },
+        45: { text: _('Fog'), icon: 'fog' },
+        48: { text: _('Rime fog'), icon: 'fog' },
+        51: { text: _('Light drizzle'), icon: 'cloud-rain' },
+        53: { text: _('Drizzle'), icon: 'cloud-rain' },
+        55: { text: _('Heavy drizzle'), icon: 'cloud-rain' },
+        56: { text: _('Freezing drizzle'), icon: 'cloud-rain' },
+        57: { text: _('Freezing drizzle'), icon: 'cloud-rain' },
+        61: { text: _('Light rain'), icon: 'cloud-rain' },
+        63: { text: _('Rain'), icon: 'cloud-rain' },
+        65: { text: _('Heavy rain'), icon: 'cloud-rain' },
+        66: { text: _('Freezing rain'), icon: 'cloud-rain' },
+        67: { text: _('Freezing rain'), icon: 'cloud-rain' },
+        71: { text: _('Light snow'), icon: 'snow' },
+        73: { text: _('Snow'), icon: 'snow' },
+        75: { text: _('Heavy snow'), icon: 'snow' },
+        77: { text: _('Snow grains'), icon: 'snow' },
+        80: { text: _('Light showers'), icon: 'cloud-rain' },
+        81: { text: _('Showers'), icon: 'cloud-rain' },
+        82: { text: _('Heavy showers'), icon: 'cloud-rain' },
+        85: { text: _('Snow showers'), icon: 'snow' },
+        86: { text: _('Snow showers'), icon: 'snow' },
+        95: { text: _('Thunderstorm'), icon: 'storm' },
+        96: { text: _('Thunderstorm with hail'), icon: 'storm' },
+        99: { text: _('Heavy thunderstorm'), icon: 'storm' },
+    };
+    return conditions[code] ?? { text: _('Cloudy'), icon: 'cloud' };
+}
 
 function _getWeatherIconName(icon, isDay = 1) {
     if (isDay === 0) {
@@ -65,7 +69,8 @@ class WeatherWidget extends BaseWidget {
         this._settingsSignals = [];
         this._location = null;
         this._weatherData = null;
-        this._lastRenderedTier = null;
+        this._lastRenderedKey = null;
+        this._disableAdaptiveText = true;
         this._destroyed = false;
         this._locationRequestId = 0;
         this._weatherRequestId = 0;
@@ -83,9 +88,11 @@ class WeatherWidget extends BaseWidget {
         this.setCard(this._card);
 
         this._renderEmpty(_('Loading weather…'));
-        this._bindWeatherSettings();
-        this._loadLocation();
-        this._scheduleWeatherRefresh();
+        if (!this.isPreview) {
+            this._bindWeatherSettings();
+            this._loadLocation();
+            this._scheduleWeatherRefresh();
+        }
 
         this.connect('destroy', () => {
             this._destroyed = true;
@@ -159,8 +166,16 @@ class WeatherWidget extends BaseWidget {
         );
     }
 
+    _getLayoutKey() {
+        const tier = this.sizeTier;
+        const showDaily = (tier === 'tall') ||
+            (tier === 'large' && this.colSpan >= 4 && this.rowSpan >= 4);
+        return `${tier}-${this.colSpan}x${this.rowSpan}-${showDaily}`;
+    }
+
     onGeometryChanged() {
-        if (this._weatherData && this._lastRenderedTier !== this.sizeTier) {
+        const key = this._getLayoutKey();
+        if (this._weatherData && this._lastRenderedKey !== key) {
             this._renderWeather();
             this.refreshAdaptiveLabels();
         }
@@ -174,34 +189,33 @@ class WeatherWidget extends BaseWidget {
         ]);
     }
 
-    _loadCachedLocation() {
+    async _loadCachedLocation() {
         try {
-            const [, contents] = GLib.file_get_contents(this._getConfigPath());
-            const cached = JSON.parse(new TextDecoder().decode(contents));
-            const ageSeconds = (GLib.get_real_time() / 1000) - (cached.fetchedAt ?? 0);
+            const cached = await readJsonFileAsync(this._getConfigPath(), this._cancellable);
+            if (!cached) return null;
+            const nowSec = Math.floor(GLib.get_real_time() / 1000000);
+            const ageSeconds = nowSec - (cached.fetchedAt ?? 0);
             if (Number.isFinite(cached.latitude) && Number.isFinite(cached.longitude) &&
                 ageSeconds < LOCATION_CACHE_MAX_AGE_SECONDS) {
                 return cached;
             }
-        } catch (_error) {
-        }
+        } catch (_error) {}
         return null;
     }
 
-    _saveCachedLocation(location) {
+    async _saveCachedLocation(location) {
         try {
-            const path = this._getConfigPath();
-            GLib.mkdir_with_parents(GLib.path_get_dirname(path), 0o700);
-            GLib.file_set_contents(path, JSON.stringify({
+            const nowSec = Math.floor(GLib.get_real_time() / 1000000);
+            await writeJsonFileAsync(this._getConfigPath(), {
                 ...location,
-                fetchedAt: GLib.get_real_time() / 1000,
-            }));
+                fetchedAt: nowSec,
+            }, this._cancellable);
         } catch (error) {
-            console.warn(`[Widgets] No se pudo guardar la ubicación: ${error.message}`);
+            console.warn(`[Widgets] Could not save location: ${error.message}`);
         }
     }
 
-    _loadLocation() {
+    async _loadLocation() {
         const requestId = ++this._locationRequestId;
         this._weatherRequestId++;
         if (this._settings?.get_boolean('weather-use-custom-location')) {
@@ -216,7 +230,8 @@ class WeatherWidget extends BaseWidget {
             return;
         }
 
-        const cached = this._loadCachedLocation();
+        const cached = await this._loadCachedLocation();
+        if (this._destroyed || requestId !== this._locationRequestId) return;
         if (cached) {
             this._location = cached;
             this._fetchWeather();
@@ -227,8 +242,9 @@ class WeatherWidget extends BaseWidget {
 
     _geocodeCity(city, requestId) {
         const encodedCity = encodeURIComponent(city);
+        const lang = GLib.get_language_names()[0]?.split(/[-_]/)[0] ?? 'en';
         const uri = 'https://geocoding-api.open-meteo.com/v1/search' +
-            `?name=${encodedCity}&count=1&language=es&format=json`;
+            `?name=${encodedCity}&count=1&language=${lang}&format=json`;
         const message = Soup.Message.new('GET', uri);
         this._session.send_and_read_async(
             message,
@@ -238,6 +254,10 @@ class WeatherWidget extends BaseWidget {
                 if (this._destroyed || requestId !== this._locationRequestId) return;
                 try {
                     const bytes = session.send_and_read_finish(result);
+                    if (message.get_status() !== Soup.Status.OK) {
+                        this._renderEmpty(_('City not found'));
+                        return;
+                    }
                     const payload = JSON.parse(new TextDecoder().decode(bytes.get_data()));
                     const place = payload?.results?.[0];
                     if (!place || !Number.isFinite(place.latitude) || !Number.isFinite(place.longitude)) {
@@ -269,6 +289,10 @@ class WeatherWidget extends BaseWidget {
                 let payload;
                 try {
                     const bytes = session.send_and_read_finish(result);
+                    if (message.get_status() !== Soup.Status.OK) {
+                        this._renderEmpty(_('Location unavailable'));
+                        return;
+                    }
                     payload = JSON.parse(new TextDecoder().decode(bytes.get_data()));
                 } catch (_error) {
                     this._renderEmpty(_('No connection'));
@@ -325,6 +349,10 @@ class WeatherWidget extends BaseWidget {
                 try {
                     const bytes = session.send_and_read_finish(result);
                     if (this._destroyed) return;
+                    if (message.get_status() !== Soup.Status.OK) {
+                        this._renderEmpty(_('No connection'));
+                        return;
+                    }
                     payload = JSON.parse(new TextDecoder().decode(bytes.get_data()));
                 } catch (_error) {
                     this._renderEmpty(_('No connection'));
@@ -424,7 +452,7 @@ class WeatherWidget extends BaseWidget {
             const code = hourly.weather_code ? hourly.weather_code[idx] : 0;
             const tempVal = Math.round(hourly.temperature_2m[idx]);
             const precipitation = hourly.precipitation_probability?.[idx] ?? 0;
-            const cond = WEATHER_CONDITIONS[code] ?? { icon: 'cloud' };
+            const cond = getWeatherCondition(code);
 
             const iconName = _getWeatherIconName(cond.icon, isDay);
 
@@ -489,7 +517,7 @@ class WeatherWidget extends BaseWidget {
             const max = Math.round(daily.temperature_2m_max[i]);
             const min = Math.round(daily.temperature_2m_min[i]);
             const precipitation = daily.precipitation_probability_max?.[i] ?? 0;
-            const cond = WEATHER_CONDITIONS[code] ?? { icon: 'cloud' };
+            const cond = getWeatherCondition(code);
 
             let dayName = dateStr;
             try {
@@ -540,10 +568,9 @@ class WeatherWidget extends BaseWidget {
         if (!this._weatherData) return;
         const { current, daily, hourly } = this._weatherData;
         const tier = this.sizeTier;
-        this._lastRenderedTier = tier;
+        this._lastRenderedKey = this._getLayoutKey();
 
-        const condition = WEATHER_CONDITIONS[current.weather_code] ??
-            { text: _('No description'), icon: 'cloud' };
+        const condition = getWeatherCondition(current.weather_code);
 
         const temp = Math.round(current.temperature_2m);
         const feels = Math.round(current.apparent_temperature);
@@ -555,7 +582,6 @@ class WeatherWidget extends BaseWidget {
         const city = this._location?.city ?? '';
 
         const headerIconName = _getWeatherIconName(condition.icon, current.is_day);
-
         this._card.destroy_all_children();
 
         const contentBox = new St.BoxLayout({
@@ -693,6 +719,29 @@ class WeatherWidget extends BaseWidget {
                 const dailyBox = this._buildDailyForecast(daily, 3);
                 contentBox.add_child(dailyBox);
             }
+        } else if (tier === 'tall') {
+            const tempLabel = new St.Label({
+                text: this._formatTemperature(temp),
+                style_class: 'widget-common-value',
+                x_align: Clutter.ActorAlign.START,
+            });
+            const conditionLabel = new St.Label({
+                text: condition.text,
+                style_class: 'widget-common-detail',
+                x_align: Clutter.ActorAlign.START,
+            });
+            const rangeLabel = new St.Label({
+                text: `${_('Max')} ${this._formatTemperature(max)} · ${_('Min')} ${this._formatTemperature(min)}`,
+                style_class: 'widget-weather-range',
+                x_align: Clutter.ActorAlign.START,
+            });
+
+            contentBox.add_child(tempLabel);
+            contentBox.add_child(conditionLabel);
+            contentBox.add_child(rangeLabel);
+
+            const dailyBox = this._buildDailyForecast(daily, this.rowSpan >= 4 ? 4 : 3);
+            contentBox.add_child(dailyBox);
         } else {
             const tempLabel = new St.Label({
                 text: this._formatTemperature(temp),
@@ -720,5 +769,13 @@ class WeatherWidget extends BaseWidget {
 });
 
 export const WIDGET_CONFIG = { colSpan: 2, rowSpan: 2, minColSpan: 2, maxColSpan: 6, minRowSpan: 2, maxRowSpan: 4 };
-export const WIDGET_NAME = _('Weather');
-export const WIDGET_DESCRIPTION = _('Temperature, hourly forecast, and conditions.');
+
+export function getWidgetMetadata() {
+    return {
+        name: _('Weather'),
+        description: _('Temperature, hourly forecast, and conditions.'),
+    };
+}
+
+export const WIDGET_NAME = 'Weather';
+export const WIDGET_DESCRIPTION = 'Temperature, hourly forecast, and conditions.';

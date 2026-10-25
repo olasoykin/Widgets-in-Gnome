@@ -591,10 +591,6 @@ msgstr "にわか雪"
 msgid "Spacing"
 msgstr "間隔"
 
-#: prefs.js:31
-msgid "Square cells (symmetric)"
-msgstr "正方形のセル（左右対称）"
-
 #: prefs.js:89
 msgid "Static blur for all widgets"
 msgstr "すべてのウィジェットに静的ぼかしを使う"
@@ -610,10 +606,6 @@ msgstr "ストレージ"
 #: widgets/clockWidget.js:13
 msgid "Sydney"
 msgstr "シドニー"
-
-#: schemas/org.gnome.shell.extensions.widgets.gschema.xml:21
-msgid "Symmetric square grid cells"
-msgstr "左右対称の正方形グリッドセル"
 
 #: widgets/systemWidget.js:150
 msgid "System"

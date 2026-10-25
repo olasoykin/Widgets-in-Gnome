@@ -27,13 +27,6 @@ export default class WidgetsPreferences extends ExtensionPreferences {
         });
         page.add(dimensionsGroup);
 
-        const symmetricRow = new Adw.SwitchRow({
-            title: _('Square cells (symmetric)'),
-            subtitle: _('Calculates proportional square cells that fill the desktop.'),
-        });
-        settings.bind('symmetric-grid', symmetricRow, 'active', Gio.SettingsBindFlags.DEFAULT);
-        dimensionsGroup.add(symmetricRow);
-
         const rowsRow = new Adw.SpinRow({
             title: _('Rows'),
             subtitle: _('Number of vertical rows (e.g. 6, 7, or 8).'),
@@ -91,6 +84,38 @@ export default class WidgetsPreferences extends ExtensionPreferences {
         });
         settings.bind('static-blur', staticBlurRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         effectsGroup.add(staticBlurRow);
+
+        const colorSchemeGroup = new Adw.PreferencesGroup({
+            title: _('Color scheme'),
+            description: _('Choose whether widgets use a light or dark appearance.'),
+        });
+        page.add(colorSchemeGroup);
+
+        const schemeModel = new Gtk.StringList();
+        schemeModel.append(_('Auto (follow system)'));
+        schemeModel.append(_('Light'));
+        schemeModel.append(_('Dark'));
+
+        const schemeRow = new Adw.ComboRow({
+            title: _('Widget theme'),
+            subtitle: _("'Auto' follows the system color scheme."),
+            model: schemeModel,
+        });
+
+        const schemeMap = ['auto', 'light', 'dark'];
+        const currentScheme = settings.get_string('color-scheme');
+        schemeRow.selected = Math.max(0, schemeMap.indexOf(currentScheme));
+
+        schemeRow.connect('notify::selected', () => {
+            const value = schemeMap[schemeRow.selected] ?? 'auto';
+            settings.set_string('color-scheme', value);
+        });
+        settings.connect('changed::color-scheme', () => {
+            const newScheme = settings.get_string('color-scheme');
+            const idx = Math.max(0, schemeMap.indexOf(newScheme));
+            if (schemeRow.selected !== idx) schemeRow.selected = idx;
+        });
+        colorSchemeGroup.add(schemeRow);
 
         const weatherPage = new Adw.PreferencesPage({
             title: _('Weather'),

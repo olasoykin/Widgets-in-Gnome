@@ -58,10 +58,12 @@ export const BaseWidget = GObject.registerClass({
         this.minRowSpan = params.minRowSpan ?? 1;
         this.maxRowSpan = params.maxRowSpan ?? 5;
         this.resizable = params.resizable ?? true;
+        this.isPreview = Boolean(params.isPreview);
         this._adaptiveLabels = new Map();
         this._adaptiveLabelBaseSizes = new WeakMap();
         this._referenceColSpan = this.colSpan;
         this._referenceRowSpan = this.rowSpan;
+        this._disableAdaptiveText = params.disableAdaptiveText ?? true;
 
         this.isEditMode = false;
         this._isDraggingWidget = false;
@@ -70,6 +72,11 @@ export const BaseWidget = GObject.registerClass({
         this._pointerGrab = null;
         this._blurEnabled = true;
         this._staticBlurEnabled = false;
+        this._hideOverlayTimeoutId = 0;
+        this._cardChildAddedId = 0;
+        this._cardChildRemovedId = 0;
+        this._cardAllocationId = 0;
+        this._cardContentClipSignals = new Map();
 
         this._blurWidget = new St.Widget({
             style_class: 'widget-blur-surface',
@@ -82,10 +89,15 @@ export const BaseWidget = GObject.registerClass({
         });
 
         this.connect('destroy', () => {
+            if (this._hideOverlayTimeoutId) {
+                GLib.source_remove(this._hideOverlayTimeoutId);
+                this._hideOverlayTimeoutId = 0;
+            }
             this._endPointerGrab();
             this._isDraggingWidget = false;
             this._isResizing = false;
             this._moveGesture = null;
+            this._disconnectCardContentClips();
             if (this._blurManager) {
                 this._blurManager.destroy();
                 this._blurManager = null;
@@ -282,10 +294,24 @@ export const BaseWidget = GObject.registerClass({
 
     setCard(cardActor) {
         if (this._card) {
+            this._disconnectCardContentClips();
             this.remove_child(this._card);
         }
         this._card = cardActor;
         this._card.reactive = false;
+        // Clamp card content to the card bounds without clipping its own shadow.
+        this._cardChildAddedId = this._card.connect('child-added', (_actor, child) => {
+            this._trackCardContentChild(child);
+        });
+        this._cardChildRemovedId = this._card.connect('child-removed', (_actor, child) => {
+            this._untrackCardContentChild(child);
+        });
+        this._cardAllocationId = this._card.connect('notify::allocation', () => {
+            this._updateCardContentClips();
+        });
+        for (const child of this._card.get_children()) {
+            this._trackCardContentChild(child);
+        }
 
         if (this._blurWidget) {
             this.insert_child_above(this._card, this._blurWidget);
@@ -307,6 +333,67 @@ export const BaseWidget = GObject.registerClass({
         });
 
         this.updateGeometry();
+    }
+
+    _trackCardContentChild(child) {
+        if (this._cardContentClipSignals.has(child)) return;
+
+        const updateClip = () => this._updateCardContentClip(child);
+        const signalIds = [
+            child.connect('notify::allocation', updateClip),
+            child.connect('notify::position', updateClip),
+        ];
+        this._cardContentClipSignals.set(child, signalIds);
+        updateClip();
+    }
+
+    _untrackCardContentChild(child) {
+        const signalIds = this._cardContentClipSignals.get(child) ?? [];
+        for (const id of signalIds) {
+            try {
+                child.disconnect(id);
+            } catch (_error) {
+            }
+        }
+        this._cardContentClipSignals.delete(child);
+        child.remove_clip();
+    }
+
+    _updateCardContentClips() {
+        for (const child of this._cardContentClipSignals.keys()) {
+            this._updateCardContentClip(child);
+        }
+    }
+
+    _updateCardContentClip(child) {
+        if (!this._card || child.get_parent() !== this._card) return;
+
+        const [width, height] = this._card.get_size();
+        if (width <= 0 || height <= 0) return;
+
+        const [x, y] = child.get_position();
+        child.set_clip(-x, -y, width, height);
+    }
+
+    _disconnectCardContentClips() {
+        if (this._card) {
+            for (const [signalId, field] of [
+                [this._cardChildAddedId, '_cardChildAddedId'],
+                [this._cardChildRemovedId, '_cardChildRemovedId'],
+                [this._cardAllocationId, '_cardAllocationId'],
+            ]) {
+                if (!signalId) continue;
+                try {
+                    this._card.disconnect(signalId);
+                } catch (_error) {
+                }
+                this[field] = 0;
+            }
+        }
+
+        for (const child of this._cardContentClipSignals.keys()) {
+            this._untrackCardContentChild(child);
+        }
     }
 
     
@@ -628,7 +715,12 @@ export const BaseWidget = GObject.registerClass({
             this._editOverlay.set_opacity(0);
             this._editOverlay.restore_easing_state();
 
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 180, () => {
+            if (this._hideOverlayTimeoutId) {
+                GLib.source_remove(this._hideOverlayTimeoutId);
+                this._hideOverlayTimeoutId = 0;
+            }
+            this._hideOverlayTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 180, () => {
+                this._hideOverlayTimeoutId = 0;
                 if (!this.isEditMode && this._editOverlay) {
                     this._editOverlay.hide();
                 }

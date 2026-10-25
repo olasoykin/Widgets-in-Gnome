@@ -16,11 +16,6 @@
       <summary>Grid gap in pixels</summary>
       <description>Gap spacing between adjacent grid cells in pixels.</description>
     </key>
-    <key name="symmetric-grid" type="b">
-      <default>true</default>
-      <summary>Symmetric square grid cells</summary>
-      <description>Ensure all grid cells are perfect squares that cover the desktop.</description>
-    </key>
     <key name="margin-top" type="i">
       <default>36</default>
       <summary>Top margin</summary>
@@ -80,6 +75,16 @@
       <default>30</default>
       <summary>Weather refresh interval</summary>
       <description>Number of minutes between weather updates.</description>
+    </key>
+    <key name="color-scheme" type="s">
+      <choices>
+        <choice value="auto"/>
+        <choice value="light"/>
+        <choice value="dark"/>
+      </choices>
+      <default>'auto'</default>
+      <summary>Widget color scheme</summary>
+      <description>Color scheme used by the widgets. 'auto' follows the system theme, 'light' forces light mode, 'dark' forces dark mode.</description>
     </key>
   </schema>
 </schemalist>

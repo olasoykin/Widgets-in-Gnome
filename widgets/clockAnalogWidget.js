@@ -59,15 +59,17 @@ class AnalogClockWidget extends BaseWidget {
         this._renderForSize();
 
         this._updateClock();
-        this._clockTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
-            this._updateClock();
-            return GLib.SOURCE_CONTINUE;
-        });
+        if (!this.isPreview) {
+            this._clockTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                this._updateClock();
+                return GLib.SOURCE_CONTINUE;
+            });
 
-        this._colorSchemeChangedId = INTERFACE_SETTINGS.connect(
-            'changed::color-scheme',
-            () => this._onColorSchemeChanged()
-        );
+            this._colorSchemeChangedId = INTERFACE_SETTINGS.connect(
+                'changed::color-scheme',
+                () => this._onColorSchemeChanged()
+            );
+        }
 
         this.connect('destroy', () => {
             if (this._clockTimeoutId) {
@@ -303,5 +305,12 @@ export const WIDGET_CONFIG = {
     maxRowSpan: 4,
 };
 
-export const WIDGET_NAME = _('Clock');
-export const WIDGET_DESCRIPTION = _('Analog clock with local time.');
+export function getWidgetMetadata() {
+    return {
+        name: _('Clock'),
+        description: _('Analog clock with local time.'),
+    };
+}
+
+export const WIDGET_NAME = 'Clock';
+export const WIDGET_DESCRIPTION = 'Analog clock with local time.';

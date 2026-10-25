@@ -1,11 +1,13 @@
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { BaseWidget } from './baseWidget.js';
+import { trashFileAsync } from './asyncUtils.js';
 
 let activeContextMenuOwner = null;
 
@@ -45,6 +47,17 @@ class DesktopItem extends BaseWidget {
 
         this.file = params.file;
         this.onPositionChanged = params.onPositionChanged ?? (() => {});
+        this.onSelectionRequested = params.onSelectionRequested ?? (() => {});
+        this.getSelectedItems = params.getSelectedItems ?? (() => [this]);
+        this.onSelectAll = params.onSelectAll ?? (() => {});
+        this.onTrashItems = params.onTrashItems ?? (items => {
+            for (const item of items) {
+                trashFileAsync(item.file).catch(error => {
+                    console.error(`[Widgets] Could not move to trash: ${error.message}`);
+                });
+            }
+        });
+        this.isSelected = false;
         this._menu = null;
         const content = new St.BoxLayout({
             orientation: Clutter.Orientation.VERTICAL,
@@ -79,10 +92,13 @@ class DesktopItem extends BaseWidget {
 
             const button = event.get_button();
             if (button === 3) {
+                this.onSelectionRequested(this, event.get_state(), true);
                 this.setEditMode(true);
                 this._showContextMenu(event.get_coords());
                 return Clutter.EVENT_STOP;
             }
+
+            if (button === 1) this.onSelectionRequested(this, event.get_state());
 
             if (button === 1 && this.isEditMode) {
                 this._beginPointerDrag(event);
@@ -122,6 +138,15 @@ class DesktopItem extends BaseWidget {
         this._selectionBorder?.add_style_class_name('desktop-item-selection-border');
     }
 
+    setSelected(selected) {
+        this.isSelected = selected;
+        if (selected) {
+            this.add_style_class_name('desktop-item-selected');
+        } else {
+            this.remove_style_class_name('desktop-item-selected');
+        }
+    }
+
     _showContextMenu([x, y]) {
         if (activeContextMenuOwner === this && this._menu) {
             this._destroyMenu();
@@ -138,16 +163,21 @@ class DesktopItem extends BaseWidget {
         this._menu.actor.set_position(x, y);
         this._menu.actor.hide();
 
-        this._menu.addAction(_('Remove from desktop (move to trash)'), () => {
-            try {
-                this.file.trash(null);
-            } catch (error) {
-                console.error(`[Widgets] Could not move to trash: ${error.message}`);
-            }
+        const selectedItems = this.getSelectedItems();
+        const files = selectedItems.length > 1 ? selectedItems : [this];
+        this._menu.addAction(_('Open'), () => {
+            for (const item of files) item._open();
         });
+        this._menu.addAction(_('Show in Files'), () => this._showInFiles(files));
         this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this._menu.addAction(_('Open'), () => this._open());
-        this._menu.addAction(_('Show in Files'), () => this._showInFiles());
+        this._menu.addAction(
+            files.length > 1
+                ? _('Move %d items to Trash').replace('%d', String(files.length))
+                : _('Move to Trash'),
+            () => this.onTrashItems(files)
+        );
+        this._menu.addAction(_('Select All'), () => this.onSelectAll());
+        this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._menu.addAction(_('Move'), () => this.setEditMode(true));
         this._menu.open();
     }
@@ -165,14 +195,30 @@ class DesktopItem extends BaseWidget {
         }
     }
 
-    _showInFiles() {
+    _showInFiles(items = [this]) {
         try {
-            Gio.Subprocess.new(
-                ['nautilus', '--select', this.file.get_uri()],
-                Gio.SubprocessFlags.NONE
+            const uris = items.map(item => item.file.get_uri());
+            Gio.DBus.session.call(
+                'org.freedesktop.FileManager1',
+                '/org/freedesktop/FileManager1',
+                'org.freedesktop.FileManager1',
+                'ShowItems',
+                new GLib.Variant('(ass)', [uris, '']),
+                null,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                null,
+                (_conn, result) => {
+                    try {
+                        Gio.DBus.session.call_finish(result);
+                    } catch {
+                        const parent = items[0]?.file.get_parent();
+                        if (parent) Gio.AppInfo.launch_default_for_uri(parent.get_uri(), null);
+                    }
+                }
             );
-        } catch (error) {
-            const parent = this.file.get_parent();
+        } catch {
+            const parent = items[0]?.file.get_parent();
             if (parent) Gio.AppInfo.launch_default_for_uri(parent.get_uri(), null);
         }
     }

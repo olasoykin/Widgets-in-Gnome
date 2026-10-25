@@ -4,13 +4,12 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { BaseWidget } from '../core/baseWidget.js';
-import { createIcon } from '../core/icons.js';
 
 const WORLD_CITIES = [
-    { name: _('New York'), tz: 'America/New_York' },
-    { name: _('London'), tz: 'Europe/London' },
-    { name: _('Tokyo'), tz: 'Asia/Tokyo' },
-    { name: _('Sydney'), tz: 'Australia/Sydney' },
+    { name: () => _('New York'), tz: 'America/New_York' },
+    { name: () => _('London'), tz: 'Europe/London' },
+    { name: () => _('Tokyo'), tz: 'Asia/Tokyo' },
+    { name: () => _('Sydney'), tz: 'Australia/Sydney' },
 ];
 
 export const Widget = GObject.registerClass(
@@ -26,9 +25,15 @@ class ClockWidget extends BaseWidget {
             maxColSpan: params.maxColSpan ?? 6,
             minRowSpan: params.minRowSpan ?? 1,
             maxRowSpan: params.maxRowSpan ?? 4,
+            ...params,
         });
 
         this._lastRenderedTier = null;
+        this._timeLabel = null;
+        this._secondsLabel = null;
+        this._dateLabel = null;
+        this._cityRows = [];
+
         this._card = new St.BoxLayout({
             style_class: 'widget-card widget-clock-card',
             orientation: Clutter.Orientation.VERTICAL,
@@ -40,15 +45,19 @@ class ClockWidget extends BaseWidget {
         });
         this.setCard(this._card);
 
+        this._rebuildUI(this.sizeTier);
         this._updateClock();
-        this._clockTimeoutId = GLib.timeout_add_seconds(
-            GLib.PRIORITY_DEFAULT,
-            1,
-            () => {
-                this._updateClock();
-                return GLib.SOURCE_CONTINUE;
-            }
-        );
+
+        if (!this.isPreview) {
+            this._clockTimeoutId = GLib.timeout_add_seconds(
+                GLib.PRIORITY_DEFAULT,
+                1,
+                () => {
+                    this._updateClock();
+                    return GLib.SOURCE_CONTINUE;
+                }
+            );
+        }
 
         this.connect('destroy', () => {
             if (this._clockTimeoutId) {
@@ -60,6 +69,7 @@ class ClockWidget extends BaseWidget {
 
     onGeometryChanged() {
         if (this._lastRenderedTier !== this.sizeTier) {
+            this._rebuildUI(this.sizeTier);
             this._updateClock();
             this.refreshAdaptiveLabels();
         }
@@ -82,7 +92,7 @@ class ClockWidget extends BaseWidget {
         }
     }
 
-    _buildWorldClockList(now, count = 3) {
+    _buildWorldClockList(count = 3) {
         const box = new St.BoxLayout({
             orientation: Clutter.Orientation.VERTICAL,
             style_class: 'widget-clock-cities-box',
@@ -94,9 +104,6 @@ class ClockWidget extends BaseWidget {
 
         for (let i = 0; i < count && i < WORLD_CITIES.length; i++) {
             const city = WORLD_CITIES[i];
-            const data = this._getCityTime(now, city.tz);
-            if (!data) continue;
-
             const row = new St.BoxLayout({
                 orientation: Clutter.Orientation.HORIZONTAL,
                 style_class: 'widget-clock-city-row',
@@ -111,18 +118,18 @@ class ClockWidget extends BaseWidget {
                 x_align: Clutter.ActorAlign.START,
             });
             const nameLabel = new St.Label({
-                text: city.name,
+                text: city.name(),
                 style_class: 'widget-clock-city-name',
             });
             const offsetLabel = new St.Label({
-                text: data.offset,
+                text: '',
                 style_class: 'widget-clock-city-offset',
             });
             left.add_child(nameLabel);
             left.add_child(offsetLabel);
 
             const timeLabel = new St.Label({
-                text: data.time,
+                text: '',
                 style_class: 'widget-clock-city-time',
                 x_align: Clutter.ActorAlign.END,
             });
@@ -130,22 +137,17 @@ class ClockWidget extends BaseWidget {
             row.add_child(left);
             row.add_child(timeLabel);
             box.add_child(row);
+
+            this._cityRows.push({ city, timeLabel, offsetLabel });
         }
 
         return box;
     }
 
-    _updateClock() {
-        const now = GLib.DateTime.new_now_local();
-        const tier = this.sizeTier;
+    _rebuildUI(tier) {
         this._lastRenderedTier = tier;
-
-        const timeString = now.format('%H:%M') ?? '';
-        const secondsString = now.format('%S') ?? '';
-        const dateString = now.format('%A, %-d %B') ?? '';
-        const tzName = now.format('%Z') ?? 'Local';
-
         this._card.destroy_all_children();
+        this._cityRows = [];
 
         const contentBox = new St.BoxLayout({
             orientation: Clutter.Orientation.VERTICAL,
@@ -154,6 +156,30 @@ class ClockWidget extends BaseWidget {
             y_expand: true,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.CENTER,
+        });
+
+        const timeBox = new St.BoxLayout({
+            orientation: Clutter.Orientation.HORIZONTAL,
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.CENTER,
+            style_class: 'widget-clock-time-row',
+        });
+        this._timeLabel = new St.Label({
+            text: '',
+            style_class: 'widget-clock-time',
+        });
+        this._secondsLabel = new St.Label({
+            text: '',
+            style_class: 'widget-clock-seconds',
+            y_align: Clutter.ActorAlign.END,
+        });
+        timeBox.add_child(this._timeLabel);
+        timeBox.add_child(this._secondsLabel);
+
+        this._dateLabel = new St.Label({
+            text: '',
+            style_class: 'widget-clock-date',
+            x_align: Clutter.ActorAlign.START,
         });
 
         if (tier === 'medium') {
@@ -172,100 +198,40 @@ class ClockWidget extends BaseWidget {
                 x_align: Clutter.ActorAlign.START,
                 y_align: Clutter.ActorAlign.CENTER,
             });
-
-            const timeBox = new St.BoxLayout({
-                orientation: Clutter.Orientation.HORIZONTAL,
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.CENTER,
-                style_class: 'widget-clock-time-row',
-            });
-            const timeLabel = new St.Label({
-                text: timeString,
-                style_class: 'widget-clock-time',
-            });
-            const secondsLabel = new St.Label({
-                text: secondsString,
-                style_class: 'widget-clock-seconds',
-                y_align: Clutter.ActorAlign.END,
-            });
-            timeBox.add_child(timeLabel);
-            timeBox.add_child(secondsLabel);
-
-            const dateLabel = new St.Label({
-                text: dateString,
-                style_class: 'widget-clock-date',
-                x_align: Clutter.ActorAlign.START,
-            });
-
             leftCol.add_child(timeBox);
-            leftCol.add_child(dateLabel);
+            leftCol.add_child(this._dateLabel);
 
-            const rightCol = this._buildWorldClockList(now, 3);
-
+            const rightCol = this._buildWorldClockList(3);
             splitRow.add_child(leftCol);
             splitRow.add_child(rightCol);
             contentBox.add_child(splitRow);
         } else if (tier === 'large') {
-            const timeBox = new St.BoxLayout({
-                orientation: Clutter.Orientation.HORIZONTAL,
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.CENTER,
-                style_class: 'widget-clock-time-row',
-            });
-            const timeLabel = new St.Label({
-                text: timeString,
-                style_class: 'widget-clock-time',
-            });
-            const secondsLabel = new St.Label({
-                text: secondsString,
-                style_class: 'widget-clock-seconds',
-                y_align: Clutter.ActorAlign.END,
-            });
-            timeBox.add_child(timeLabel);
-            timeBox.add_child(secondsLabel);
-
-            const dateLabel = new St.Label({
-                text: dateString,
-                style_class: 'widget-clock-date',
-                x_align: Clutter.ActorAlign.START,
-            });
-
             contentBox.add_child(timeBox);
-            contentBox.add_child(dateLabel);
+            contentBox.add_child(this._dateLabel);
 
-            const worldBox = this._buildWorldClockList(now, 4);
+            const worldBox = this._buildWorldClockList(4);
             worldBox.margin_top = 8;
             contentBox.add_child(worldBox);
         } else {
-            const timeBox = new St.BoxLayout({
-                orientation: Clutter.Orientation.HORIZONTAL,
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.CENTER,
-                style_class: 'widget-clock-time-row',
-            });
-            const timeLabel = new St.Label({
-                text: timeString,
-                style_class: 'widget-clock-time',
-            });
-            const secondsLabel = new St.Label({
-                text: secondsString,
-                style_class: 'widget-clock-seconds',
-                y_align: Clutter.ActorAlign.END,
-            });
-            timeBox.add_child(timeLabel);
-            timeBox.add_child(secondsLabel);
-
-            const dateLabel = new St.Label({
-                text: dateString,
-                style_class: 'widget-clock-date',
-                x_align: Clutter.ActorAlign.START,
-            });
-
             contentBox.add_child(timeBox);
-            contentBox.add_child(dateLabel);
+            contentBox.add_child(this._dateLabel);
         }
 
         this._card.add_child(contentBox);
+    }
+
+    _updateClock() {
+        const now = GLib.DateTime.new_now_local();
+        if (this._timeLabel) this._timeLabel.text = now.format('%H:%M') ?? '';
+        if (this._secondsLabel) this._secondsLabel.text = now.format('%S') ?? '';
+        if (this._dateLabel) this._dateLabel.text = now.format('%A, %-d %B') ?? '';
+
+        for (const { city, timeLabel, offsetLabel } of this._cityRows) {
+            const data = this._getCityTime(now, city.tz);
+            if (!data) continue;
+            timeLabel.text = data.time;
+            offsetLabel.text = data.offset;
+        }
     }
 });
 
@@ -278,5 +244,12 @@ export const WIDGET_CONFIG = {
     maxRowSpan: 4,
 };
 
-export const WIDGET_NAME = _('Clock');
-export const WIDGET_DESCRIPTION = _('Local time and world clock.');
+export function getWidgetMetadata() {
+    return {
+        name: _('Clock'),
+        description: _('Local time and world clock.'),
+    };
+}
+
+export const WIDGET_NAME = 'Clock';
+export const WIDGET_DESCRIPTION = 'Local time and world clock.';

@@ -1,15 +1,17 @@
 import St from 'gi://St';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
-const TMP_CSS_PATH = '/tmp/widgets-inter-fonts.css';
-
-/** @type {Gio.File | null} */
 let _loadedStylesheet = null;
 
-/**
- * Registra dinámicamente la fuente Inter variable en el St.Theme activo de GNOME Shell.
- * @param {string} extensionPath - Ruta base de la extensión
- */
+function _getCssPath() {
+    return GLib.build_filenamev([
+        GLib.get_user_cache_dir(),
+        'widgets@kin',
+        'widgets-inter-fonts.css',
+    ]);
+}
+
 export function registerFonts(extensionPath) {
     if (_loadedStylesheet) return;
 
@@ -18,7 +20,9 @@ export function registerFonts(extensionPath) {
     if (!css) return;
 
     try {
-        const tmpFile = Gio.File.new_for_path(TMP_CSS_PATH);
+        const cssPath = _getCssPath();
+        GLib.mkdir_with_parents(GLib.path_get_dirname(cssPath), 0o700);
+        const tmpFile = Gio.File.new_for_path(cssPath);
         const [ok] = tmpFile.replace_contents(
             new TextEncoder().encode(css),
             null,
@@ -26,13 +30,10 @@ export function registerFonts(extensionPath) {
             Gio.FileCreateFlags.REPLACE_DESTINATION,
             null
         );
-        if (!ok) {
-            console.warn('[Widgets] fontLoader: fallo al escribir CSS temporal');
-            return;
-        }
+        if (!ok) return;
         _loadedStylesheet = tmpFile;
     } catch (e) {
-        console.warn('[Widgets] fontLoader: error al escribir CSS —', e.message);
+        console.warn(`[Widgets] fontLoader: failed to write CSS — ${e.message}`);
         return;
     }
 
@@ -40,28 +41,23 @@ export function registerFonts(extensionPath) {
         const theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
         theme.load_stylesheet(_loadedStylesheet);
     } catch (e) {
-        console.warn('[Widgets] fontLoader: fallo al cargar stylesheet —', e.message);
+        console.warn(`[Widgets] fontLoader: failed to load stylesheet — ${e.message}`);
         _loadedStylesheet = null;
     }
 }
 
-/**
- * Descarga el stylesheet de fuentes al deshabilitar la extensión.
- */
 export function unregisterFonts() {
     if (!_loadedStylesheet) return;
     try {
         const theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
         theme.unload_stylesheet(_loadedStylesheet);
     } catch (e) {
-        console.warn('[Widgets] fontLoader: fallo al descargar stylesheet —', e.message);
+        console.warn(`[Widgets] fontLoader: failed to unload stylesheet — ${e.message}`);
     }
 
     try {
         _loadedStylesheet.delete(null);
-    } catch {
-        // Ignorar si ya fue eliminado
-    }
+    } catch {}
     _loadedStylesheet = null;
 }
 
@@ -70,13 +66,19 @@ function _buildFontFaceCSS(fontsDir) {
     if (!Gio.File.new_for_path(fontPath).query_exists(null)) {
         fontPath = `${fontsDir}/Inter-VariableFont_opsz,wght.ttf`;
         if (!Gio.File.new_for_path(fontPath).query_exists(null)) {
-            console.warn('[Widgets] fontLoader: Inter no encontrada en', fontsDir);
             return null;
         }
     }
 
-    return `/* Generado por fontLoader.js */
-@font-face {
+    let italicFontPath = `${fontsDir}/Inter-Italic.ttf`;
+    if (!Gio.File.new_for_path(italicFontPath).query_exists(null)) {
+        italicFontPath = `${fontsDir}/Inter-Italic-VariableFont_opsz,wght.ttf`;
+        if (!Gio.File.new_for_path(italicFontPath).query_exists(null)) {
+            italicFontPath = fontPath;
+        }
+    }
+
+    return `@font-face {
     font-family: "Inter";
     font-style: normal;
     font-weight: 100 900;
@@ -87,7 +89,7 @@ function _buildFontFaceCSS(fontsDir) {
     font-family: "Inter";
     font-style: italic;
     font-weight: 100 900;
-    src: url("file://${fontPath}") format("truetype");
+    src: url("file://${italicFontPath}") format("truetype");
 }
 `;
 }
