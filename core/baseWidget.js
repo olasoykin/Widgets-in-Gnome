@@ -143,17 +143,18 @@ export const BaseWidget = GObject.registerClass({
                 return Clutter.EVENT_STOP;
             }
 
-            if (button === 1 && this.isEditMode) {
-                this._beginPointerDrag(event);
-                this._card?.add_style_class_name('widget-no-shadow');
+            if (button === 1) {
+                if (this.isEditMode) {
+                    this._beginPointerDrag(event);
+                    this._card?.add_style_class_name('widget-no-shadow');
 
-                this.save_easing_state();
-                this.set_easing_duration(150);
-                this.set_easing_mode(Clutter.AnimationMode.EASE_OUT_QUAD);
-                this.set_scale(1.04, 1.04);
-                this.set_opacity(230);
-                this.restore_easing_state();
-
+                    this.save_easing_state();
+                    this.set_easing_duration(150);
+                    this.set_easing_mode(Clutter.AnimationMode.EASE_OUT_QUAD);
+                    this.set_scale(1.04, 1.04);
+                    this.set_opacity(230);
+                    this.restore_easing_state();
+                }
                 return Clutter.EVENT_STOP;
             }
 

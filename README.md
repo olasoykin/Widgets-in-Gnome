@@ -43,7 +43,7 @@ You can install them using the **Extension Manager** app or from [extensions.gno
    gnome-extensions enable widgets@kin
    ```
 
-If the extension does not appear or activate, log out and back in. On GNOME running on Xorg, you can also restart GNOME Shell by pressing `Alt` + `F2`, entering `r`, and pressing `Enter`.
+If the extension does not appear or activate, log out and back in.
 
 ## License
 

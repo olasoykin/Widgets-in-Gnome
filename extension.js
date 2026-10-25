@@ -24,6 +24,7 @@ export default class WidgetsExtension extends Extension {
         this._selectedDesktopItems = new Set();
         this._selectionBand = null;
         this._selectionStart = null;
+        this._liveSelection = null;
         this._widgetCatalog = [];
         this._desktopMenu = null;
         this._desktopMenuAnchor = null;
@@ -63,26 +64,43 @@ export default class WidgetsExtension extends Extension {
         this._container.set_size(stageWidth, stageHeight);
         this._container.connect('button-press-event', (_actor, event) => {
             const button = event.get_button();
+            const [x, y] = event.get_coords();
+
             if (button === 1) {
-                const [x, y] = event.get_coords();
-                this._startDesktopSelection(x, y, event.get_state());
+                // Events from desktop items can bubble to the full-screen
+                // container. Let the item own the press so its drag handler
+                // can move it (or the selected group) without starting a lasso.
+                if (this._desktopItems.some(item => {
+                    const [itemX, itemY] = item.get_transformed_position();
+                    const [itemWidth, itemHeight] = item.get_transformed_size();
+                    return x >= itemX && x <= itemX + itemWidth &&
+                        y >= itemY && y <= itemY + itemHeight;
+                })) return Clutter.EVENT_PROPAGATE;
+                const [localX, localY] = this._container.transform_stage_point(x, y).slice(1);
+                this._startDesktopSelection(localX, localY, event.get_state());
                 return Clutter.EVENT_STOP;
             }
-            if (button !== 3) return Clutter.EVENT_PROPAGATE;
-
-            const [x, y] = event.get_coords();
-            this._showDesktopMenu(x, y);
-            return Clutter.EVENT_STOP;
+            if (button === 3) {
+                if (this._selectionStart) {
+                    this._cancelDesktopSelection();
+                    return Clutter.EVENT_STOP;
+                }
+                this._showDesktopMenu(x, y);
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
         });
         this._container.connect('motion-event', (_actor, event) => {
             if (!this._selectionStart) return Clutter.EVENT_PROPAGATE;
-            const [x, y] = event.get_coords();
+            const [stageX, stageY] = event.get_coords();
+            const [x, y] = this._container.transform_stage_point(stageX, stageY).slice(1);
             this._updateDesktopSelection(x, y);
             return Clutter.EVENT_STOP;
         });
         this._container.connect('button-release-event', (_actor, event) => {
             if (event.get_button() !== 1 || !this._selectionStart) return Clutter.EVENT_PROPAGATE;
-            const [x, y] = event.get_coords();
+            const [stageX, stageY] = event.get_coords();
+            const [x, y] = this._container.transform_stage_point(stageX, stageY).slice(1);
             this._finishDesktopSelection(x, y);
             return Clutter.EVENT_STOP;
         });
@@ -101,6 +119,31 @@ export default class WidgetsExtension extends Extension {
         this._bindMonitors();
         this._bindColorScheme();
         this._stageEventId = global.stage.connect('captured-event', (actor, event) => {
+            const draggingItem = this._desktopItems.find(item => item.isDragging);
+            if (draggingItem && event.type() === Clutter.EventType.MOTION) {
+                draggingItem._updateDesktopDrag(event);
+                return Clutter.EVENT_STOP;
+            }
+            if (draggingItem && event.type() === Clutter.EventType.BUTTON_RELEASE &&
+                event.get_button() === 1) {
+                draggingItem._finishDesktopDrag(event);
+                return Clutter.EVENT_STOP;
+            }
+
+            if (this._selectionStart && event.type() === Clutter.EventType.MOTION) {
+                const [stageX, stageY] = event.get_coords();
+                const [x, y] = this._container.transform_stage_point(stageX, stageY).slice(1);
+                this._updateDesktopSelection(x, y);
+                return Clutter.EVENT_STOP;
+            }
+            if (this._selectionStart && event.type() === Clutter.EventType.BUTTON_RELEASE &&
+                event.get_button() === 1) {
+                const [stageX, stageY] = event.get_coords();
+                const [x, y] = this._container.transform_stage_point(stageX, stageY).slice(1);
+                this._finishDesktopSelection(x, y);
+                return Clutter.EVENT_STOP;
+            }
+
             if (event.type() === Clutter.EventType.KEY_PRESS) {
                 if (Main.modalCount > 0) return Clutter.EVENT_PROPAGATE;
                 const focus = global.stage.get_key_focus();
@@ -118,6 +161,24 @@ export default class WidgetsExtension extends Extension {
                     (key === Clutter.KEY_Delete || key === Clutter.KEY_KP_Delete)) {
                     this._trashSelectedDesktopItems();
                     return Clutter.EVENT_STOP;
+                }
+                if (key === Clutter.KEY_Escape) {
+                    let didCancelDrag = false;
+                    for (const item of this._desktopItems) {
+                        if (item.isDragging) {
+                            item.cancelDesktopDrag();
+                            didCancelDrag = true;
+                        }
+                    }
+                    if (didCancelDrag) return Clutter.EVENT_STOP;
+                    if (this._selectionStart) {
+                        this._cancelDesktopSelection();
+                        return Clutter.EVENT_STOP;
+                    }
+                    if (this._selectedDesktopItems.size > 0) {
+                        this._setDesktopItemSelection([]);
+                        return Clutter.EVENT_STOP;
+                    }
                 }
                 return Clutter.EVENT_PROPAGATE;
             }
@@ -182,17 +243,22 @@ export default class WidgetsExtension extends Extension {
         }
     }
 
-    _selectDesktopItem(item, state, rightClick = false) {
+    _selectDesktopItem(item, state, rightClick = false, isClickRelease = false) {
         const selected = new Set(this._selectedDesktopItems);
-        const controlPressed = (state & Clutter.ModifierType.CONTROL_MASK) !== 0;
+        const controlPressed = (state & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.SHIFT_MASK)) !== 0;
         if (rightClick) {
             if (!selected.has(item)) this._setDesktopItemSelection([item]);
         } else if (controlPressed) {
+            if (isClickRelease) return;
             if (selected.has(item)) selected.delete(item);
             else selected.add(item);
             this._setDesktopItemSelection(selected);
-        } else if (!selected.has(item) || selected.size > 1) {
+        } else if (isClickRelease) {
             this._setDesktopItemSelection([item]);
+        } else {
+            if (!selected.has(item)) {
+                this._setDesktopItemSelection([item]);
+            }
         }
     }
 
@@ -210,9 +276,11 @@ export default class WidgetsExtension extends Extension {
         this._setDesktopItemSelection([]);
     }
 
+
     _startDesktopSelection(x, y, state) {
         this._selectionStart = { x, y };
-        this._selectionAdditive = (state & Clutter.ModifierType.CONTROL_MASK) !== 0;
+        this._selectionAdditive = (state & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.SHIFT_MASK)) !== 0;
+        this._liveSelection = null;
         if (!this._selectionAdditive) this._setDesktopItemSelection([]);
         if (!this._selectionBand) {
             this._selectionBand = new St.Widget({
@@ -222,38 +290,71 @@ export default class WidgetsExtension extends Extension {
             });
             this._container.add_child(this._selectionBand);
         }
+        this._container.set_child_above_sibling(this._selectionBand, null);
         this._selectionBand.set_position(x, y);
         this._selectionBand.set_size(0, 0);
-        this._selectionBand.show();
+        this._selectionBand.hide();
     }
 
     _updateDesktopSelection(x, y) {
+        if (!this._selectionStart || !this._selectionBand) return;
         const left = Math.min(this._selectionStart.x, x);
         const top = Math.min(this._selectionStart.y, y);
         const width = Math.abs(x - this._selectionStart.x);
         const height = Math.abs(y - this._selectionStart.y);
+        const right = left + width;
+        const bottom = top + height;
+
         this._selectionBand.set_position(left, top);
         this._selectionBand.set_size(width, height);
+
+        const dist = Math.hypot(x - this._selectionStart.x, y - this._selectionStart.y);
+        if (dist >= 6) {
+            this._selectionBand.show();
+            const selected = this._selectionAdditive ? new Set(this._selectedDesktopItems) : new Set();
+            for (const item of this._desktopItems) {
+                const itemX = item.x;
+                const itemY = item.y;
+                const itemWidth = item.width;
+                const itemHeight = item.height;
+                if (itemX < right && itemX + itemWidth > left &&
+                    itemY < bottom && itemY + itemHeight > top) {
+                    selected.add(item);
+                }
+            }
+            for (const item of this._desktopItems) {
+                item.setSelected(selected.has(item));
+            }
+            this._liveSelection = selected;
+        } else {
+            this._selectionBand.hide();
+        }
     }
 
     _finishDesktopSelection(x, y) {
+        if (!this._selectionStart) return;
         this._updateDesktopSelection(x, y);
-        const left = Math.min(this._selectionStart.x, x);
-        const top = Math.min(this._selectionStart.y, y);
-        const right = Math.max(this._selectionStart.x, x);
-        const bottom = Math.max(this._selectionStart.y, y);
-        const selected = this._selectionAdditive ? new Set(this._selectedDesktopItems) : new Set();
-        for (const item of this._desktopItems) {
-            const [itemX, itemY] = item.get_transformed_position();
-            const [itemWidth, itemHeight] = item.get_transformed_size();
-            if (itemX + itemWidth >= left && itemX <= right &&
-                itemY + itemHeight >= top && itemY <= bottom) {
-                selected.add(item);
-            }
+        if (this._liveSelection) {
+            this._setDesktopItemSelection(this._liveSelection);
+            this._liveSelection = null;
+        } else if (!this._selectionAdditive) {
+            this._setDesktopItemSelection([]);
         }
-        this._setDesktopItemSelection(selected);
         this._selectionStart = null;
-        this._selectionBand.hide();
+        if (this._selectionBand) {
+            this._selectionBand.hide();
+            this._selectionBand.set_size(0, 0);
+        }
+    }
+
+    _cancelDesktopSelection() {
+        this._selectionStart = null;
+        this._liveSelection = null;
+        if (this._selectionBand) {
+            this._selectionBand.hide();
+            this._selectionBand.set_size(0, 0);
+        }
+        if (!this._selectionAdditive) this._setDesktopItemSelection([]);
     }
 
     _showDesktopMenu(x, y) {
@@ -732,8 +833,8 @@ export default class WidgetsExtension extends Extension {
                 name: entry.info.get_display_name(),
                 icon,
                 onPositionChanged: () => this._saveDesktopPositions(),
-                onSelectionRequested: (selectedItem, state, rightClick) => {
-                    this._selectDesktopItem(selectedItem, state, rightClick);
+                onSelectionRequested: (selectedItem, state, rightClick, isClickRelease) => {
+                    this._selectDesktopItem(selectedItem, state, rightClick, isClickRelease);
                 },
                 getSelectedItems: () => [...this._selectedDesktopItems],
                 onSelectAll: () => this._selectAllDesktopItems(),
@@ -1144,7 +1245,11 @@ export default class WidgetsExtension extends Extension {
         this._overlay = null;
         this._widgets = [];
         this._pluginWidgets = [];
+        for (const item of this._desktopItems) {
+            if (item.cancelDesktopDrag) item.cancelDesktopDrag();
+        }
         this._desktopItems = [];
+        this._cancelDesktopSelection();
         this._selectedDesktopItems.clear();
         this._selectionBand?.destroy();
         this._selectionBand = null;

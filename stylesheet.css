@@ -126,17 +126,36 @@
 .desktop-item-content {
     spacing: 6px;
     padding: 8px;
+    border-radius: 12px;
+    transition-duration: 200ms;
 }
 
 .desktop-item-selected {
     background-color: rgba(53, 132, 228, 0.24);
-    border: 1px solid rgba(53, 132, 228, 0.78);
-    border-radius: 8px;
+    border: 1.5px solid rgba(53, 132, 228, 0.85);
+    border-radius: 12px;
 }
 
 .desktop-selection-band {
     background-color: rgba(53, 132, 228, 0.18);
-    border: 1px solid rgba(53, 132, 228, 0.9);
+    border: 1.5px solid rgba(53, 132, 228, 0.85);
+    border-radius: 12px;
+}
+
+.desktop-item-content.desktop-item-dragging {
+    background-color: rgba(53, 132, 228, 0.36);
+    border: 1.5px solid rgba(53, 132, 228, 0.95);
+    border-radius: 12px;
+}
+
+.desktop-drag-stack-badge {
+    background-color: #3584e4;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 2px 7px;
+    border: 1.5px solid #ffffff;
 }
 
 .desktop-item-icon {
@@ -393,6 +412,8 @@
 }
 
 .desktop-item-selection-border {
+    border: 2px solid #3584e4;
+    border-radius: 12px;
     box-shadow: none;
 }
 
